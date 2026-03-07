@@ -202,7 +202,7 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
     <div class="slabel">Image API</div>
     <div class="row2" style="margin-bottom:8px">
       <button class="pvbtn on" id="pv-gemini" onclick="setProv('gemini')">🍌 Gemini</button>
-      <button class="pvbtn" id="pv-openai" onclick="setProv('openai')">⚡ OpenAI</button>
+      <button class="pvbtn" id="pv-openai" onclick="setProv('openai')">⚡ OpenAI / Sora</button>
     </div>
     <div class="row2">
       <input class="ainput" type="password" id="api-key" placeholder="AIza... (aistudio.google.com/apikey)" />
@@ -785,11 +785,24 @@ async function gemImg(prompt) {
 }
 
 async function oaiImg(prompt) {
+  const styledPrompt = prompt + ' Bold 3D cartoon editorial newspaper style.';
+  // Try GPT Image 1 (Sora) first — best quality
+  try {
+    const r = await fetch('https://api.openai.com/v1/images/generations',
+      {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+       body:JSON.stringify({model:'gpt-image-1',prompt:styledPrompt,n:1,size:'1024x1024',quality:'medium'})});
+    const d = await r.json();
+    if (r.ok) {
+      const b = d?.data?.[0]?.b64_json;
+      if (b) return `data:image/png;base64,${b}`;
+    } else { console.warn('gpt-image-1', d?.error?.message); }
+  } catch(e){console.warn('gpt-image-1',e);}
+  // Fallback: DALL-E 3, then DALL-E 2
   for (const {m,sz} of [{m:'dall-e-3',sz:'1024x1024'},{m:'dall-e-2',sz:'512x512'}]) {
     try {
       const r = await fetch('https://api.openai.com/v1/images/generations',
         {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-         body:JSON.stringify({model:m,prompt:prompt+' Bold 3D cartoon editorial newspaper style.',n:1,size:sz,response_format:'b64_json'})});
+         body:JSON.stringify({model:m,prompt:styledPrompt,n:1,size:sz,response_format:'b64_json'})});
       const d = await r.json();
       if (!r.ok){console.warn(m,d?.error?.message);continue;}
       const b = d?.data?.[0]?.b64_json;
