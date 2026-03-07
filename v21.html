@@ -164,6 +164,18 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
 .step { display:flex; align-items:center; gap:10px; color:#475569; font-size:12px; }
 .step-n { background:#1e293b; color:var(--gold); width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; }
 
+/* Individual News Cards */
+.ncard { width:100%; max-width:680px; background:var(--cream); border:3px solid var(--dark); box-shadow:0 0 0 5px var(--cream),0 0 0 7px var(--dark),0 16px 48px rgba(0,0,0,.35); }
+.ncard-mast { background:var(--brown); display:flex; align-items:center; justify-content:space-between; padding:9px 14px; border-bottom:3px solid var(--dark); }
+.ncard-brand { font-family:'Noto Sans Devanagari',sans-serif; font-weight:900; font-size:clamp(20px,5vw,32px); color:#f5f0e8; letter-spacing:-0.5px; line-height:1; }
+.ncard-meta { font-size:10px; color:var(--lb); font-weight:700; text-transform:uppercase; letter-spacing:.8px; font-family:'Source Sans 3',sans-serif; text-align:right; }
+.ncard-img { height:340px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; background:var(--db); border-bottom:3px solid var(--dark); clip-path:inset(0); }
+.ncard-img img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; display:block; transform-origin:center center; }
+.ncard-body { padding:14px 16px 10px; }
+.ncard-hl { font-family:'Noto Sans Devanagari',serif; font-size:clamp(16px,3vw,22px); font-weight:900; color:var(--dark); line-height:1.35; margin-bottom:10px; border-bottom:2.5px solid var(--dark); padding-bottom:10px; }
+.ncard-sm { font-family:'Noto Sans Devanagari',Georgia,serif; font-size:clamp(12px,1.8vw,14px); line-height:1.7; color:#2d2418; margin-bottom:10px; }
+.ncard-foot { display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--db); font-family:'Source Sans 3',sans-serif; padding-top:8px; border-top:1.5px solid var(--brown); }
+
 @keyframes spin { to { transform:rotate(360deg); } }
 @keyframes fadein { from { opacity:0;transform:translateY(10px); } to { opacity:1;transform:translateY(0); } }
 .fadein { animation:fadein .3s ease; }
@@ -228,7 +240,7 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
     <div class="fhead">
       <div style="display:flex;align-items:center">
         <span class="ftitle" id="feedtitle">Today's News</span>
-        <span class="badge" id="badge">0 / 4</span>
+        <span class="badge" id="badge">0 selected</span>
       </div>
       <button class="rbtn" id="rfbtn" onclick="refreshFeed()">↻ Live Refresh</button>
     </div>
@@ -246,8 +258,8 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
 
   <!-- Generate -->
   <div class="gsec">
-    <button class="gbtn" id="gbtn" onclick="generate()" disabled>🍌 Generate Newspaper Card</button>
-    <p class="gnote" id="gnote">Select up to 4 stories to begin</p>
+    <button class="gbtn" id="gbtn" onclick="generate()" disabled>🍌 Generate News Cards</button>
+    <p class="gnote" id="gnote">Select stories to begin</p>
   </div>
 </div>
 
@@ -319,6 +331,8 @@ const BASE_NEWS = [
 (function init() {
   allNews = [...BASE_NEWS];
   renderFeed(); // show base news instantly
+  // Pre-fill the API key input if hardcoded
+  const inp = document.getElementById('api-key');
   if (USE_PROXY) { document.getElementById('keyok').textContent = '✓ Server key active'; document.getElementById('keyok').style.display = 'block'; }
   // Auto-fetch live news
   setTimeout(() => refreshFeed(), 400);
@@ -366,11 +380,6 @@ function toggle(id) {
     sel.delete(id);
     document.getElementById('ni-'+id)?.classList.remove('on');
   } else {
-    if (sel.size >= 4) {
-      const first = sel.values().next().value;
-      sel.delete(first);
-      document.getElementById('ni-'+first)?.classList.remove('on');
-    }
     sel.add(id);
     document.getElementById('ni-'+id)?.classList.add('on');
   }
@@ -379,10 +388,10 @@ function toggle(id) {
 
 function updateUI() {
   const c = sel.size;
-  document.getElementById('badge').textContent = `${c} / 4`;
+  document.getElementById('badge').textContent = `${c} selected`;
   const btn = document.getElementById('gbtn');
   const note = document.getElementById('gnote');
-  if (c === 0) { btn.disabled=true; note.textContent='Select up to 4 stories to begin'; }
+  if (c === 0) { btn.disabled=true; note.textContent='Select stories to begin'; }
   else if (!apiKey && !USE_PROXY) { btn.disabled=true; note.textContent=`${c} selected — add API key above`; }
   else { btn.disabled=false; note.textContent=`${c} stor${c===1?'y':'ies'} selected · ready to generate!`; }
 }
@@ -680,24 +689,22 @@ async function generate() {
   const btn = document.getElementById('gbtn');
   btn.disabled=true; btn.textContent='⏳ Generating content...';
 
-  const selected = allNews.filter(n => sel.has(n.id)).slice(0,4);
-  while (selected.length < 4) selected.push(null);
+  const selected = allNews.filter(n => sel.has(n.id));
 
-  // Generate text content for all panels
+  // Generate text content for all cards
   stories = await Promise.all(selected.map(async(n,i) => {
-    if (!n) return {id:`e${i}`,isDark:i%2===0,headline:'',summary:'',imagePrompt:'',img:null,loading:false,err:null,empty:true};
     const c = await getContent(n.hl, n);
-    return {id:n.id, isDark:i%2===0, ...c, img:null, loading:false, err:null};
+    return {id:n.id, idx:i, ...c, img:null, loading:false, err:null};
   }));
 
-  renderNP();
+  renderCards();
   btn.textContent='⏳ Generating images...';
 
   // Generate images sequentially
   for (let i=0; i<stories.length; i++) {
-    if (stories[i].empty || !stories[i].imagePrompt) continue;
+    if (!stories[i].imagePrompt) continue;
     stories[i].loading=true;
-    patchImg(i);
+    patchCardImg(i);
     try {
       stories[i].img = prov==='openai' ? await oaiImg(stories[i].imagePrompt) : await gemImg(stories[i].imagePrompt);
       stories[i].loading=false;
@@ -705,11 +712,11 @@ async function generate() {
       stories[i].loading=false;
       stories[i].err=e.message.slice(0,85);
     }
-    patchImg(i);
+    patchCardImg(i);
   }
 
   btn.disabled=false;
-  btn.textContent='↺ Regenerate Card';
+  btn.textContent='↺ Regenerate Cards';
 }
 
 async function getContent(headline, newsItem) {
@@ -792,28 +799,276 @@ async function oaiImg(prompt) {
   throw new Error('OpenAI image failed — check billing at platform.openai.com');
 }
 
-// ── RENDER NEWSPAPER ──────────────────────────────────────────────────────────
-function renderNP() {
+// ── RENDER INDIVIDUAL CARDS ──────────────────────────────────────────────────
+function renderCards() {
   const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const ed={national:"Bharat",bihar:"Bihar",kerala:"Kerala",tamilnadu:"Tamil Nadu",bengal:"Bengal",northeast:"North East",middleeast:"Middle East War Desk"};
+  const edLabel = ed[currentEdition]||"Bharat";
+
   document.getElementById('right').innerHTML = `
-    <div class="np fadein" id="np">
-      <div class="mast"><h1>लोकतंत्र वाणी</h1></div>
-      <div class="ibar">
-        ${(()=>{const ed={national:"Bharat",bihar:"Bihar",kerala:"Kerala",tamilnadu:"Tamil Nadu",bengal:"Bengal",northeast:"North East",middleeast:"Middle East War Desk"};return `<span>${ed[currentEdition]||"Bharat"} Edition</span>`})()}
-        <span class="it">Crafted by Kautilya World</span>
-        <span>${today}</span>
-      </div>
-      <div class="sgrid">${stories.map((s,i)=>panHTML(s,i)).join('')}</div>
-      <div class="npfoot">
-        <div class="fc br">✉ enquiry@kautilya.world</div>
-        <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900">𝕏 @world_kautilya</div>
-        <div class="fc br2">🌐 kautilya.world</div>
+    <div style="width:100%;max-width:680px;display:flex;flex-direction:column;gap:24px;" id="cards-wrap">
+      ${stories.map((s,i) => cardHTML(s,i,edLabel,today)).join('')}
+    </div>
+    <div class="dlrow" style="max-width:680px;width:100%">
+      <button class="dlbtn gold" onclick="generate()">↺ Regenerate All</button>
+    </div>`;
+}
+
+function cardHTML(s, i, edLabel, today) {
+  let imgSection = '';
+  if (s.img) {
+    imgSection = `<img id="img${i}" src="${s.img}" alt="" style="${getFilter(i)}" onload="stretchImg(${i},this)"/>
+      <button class="rgbtn" onclick="regenImg(${i})" style="display:flex">↺</button>
+      ${toolbarHTML(i)}`;
+  } else if (s.loading) {
+    imgSection = `<div class="lwrap"><div class="spin"></div><span class="llbl">Generating image…</span></div>`;
+  } else if (s.err) {
+    imgSection = `<div class="emsg">⚠️ ${s.err}</div><button class="rgbtn" onclick="regenImg(${i})" style="display:flex">↺</button>`;
+  } else {
+    imgSection = `<div class="ph"><div class="ico">🍌</div><div class="hint">Loading…</div></div>`;
+  }
+
+  return `<div class="ncard fadein" id="card${i}">
+    <div class="ncard-mast">
+      <span class="ncard-brand">लोकतंत्र वाणी</span>
+      <span class="ncard-meta">${edLabel} Edition · ${today}</span>
+    </div>
+    <div class="ncard-img" id="cimg${i}">${imgSection}</div>
+    <div class="ncard-body">
+      <div class="ncard-hl">${s.headline}</div>
+      <div class="ncard-sm">${s.summary}</div>
+      <div class="ncard-foot">
+        <span>✉ enquiry@kautilya.world</span>
+        <span style="font-weight:900">𝕏 @world_kautilya</span>
+        <span>🌐 kautilya.world</span>
       </div>
     </div>
-    <div class="dlrow">
-      <button class="dlbtn" onclick="dlPNG()">⬇ Download PNG</button>
-      <button class="dlbtn gold" onclick="generate()">↺ Regenerate</button>
-    </div>`;
+    <div style="padding:8px 0 0;display:flex;gap:8px;">
+      <button class="dlbtn" style="flex:1;padding:9px;font-size:12px;" onclick="dlCardPNG(${i})">⬇ Download This Card</button>
+      <button class="dlbtn gold" style="flex:none;padding:9px 14px;font-size:12px;" onclick="regenImg(${i})">↺ New Image</button>
+    </div>
+  </div>`;
+}
+
+function patchCardImg(i) {
+  const el = document.getElementById('cimg'+i);
+  if (!el) return;
+  const s = stories[i];
+  let html = '';
+  if (s.img) html = `<img id="img${i}" src="${s.img}" alt="" style="${getFilter(i)}" onload="stretchImg(${i},this)"/>
+    <button class="rgbtn" onclick="regenImg(${i})" style="display:flex">↺</button>
+    ${toolbarHTML(i)}`;
+  else if (s.loading) html = `<div class="lwrap"><div class="spin"></div><span class="llbl">Generating…</span></div>`;
+  else if (s.err) html = `<div class="emsg">⚠️ ${s.err}</div><button class="rgbtn" onclick="regenImg(${i})" style="display:flex">↺</button>`;
+  else html = `<div class="ph"><div class="ico">🍌</div></div>`;
+  el.innerHTML = html;
+}
+
+async function dlCardPNG(i) {
+  const s = stories[i];
+  if (!s) return;
+
+  // Resolve CSS variables from current body class
+  const cs = getComputedStyle(document.documentElement);
+  const clr = {
+    brown: cs.getPropertyValue('--brown').trim() || '#7d6144',
+    cream: cs.getPropertyValue('--cream').trim() || '#e8d9c0',
+    dark:  cs.getPropertyValue('--dark').trim()  || '#1a1a2e',
+    gold:  cs.getPropertyValue('--gold').trim()  || '#f59e0b',
+    lb:    cs.getPropertyValue('--lb').trim()    || '#c4a882',
+    db:    cs.getPropertyValue('--db').trim()    || '#5c4433',
+  };
+
+  const W = 1080, SCALE = 1;
+  const MAST_H = 80;
+  const IMG_H  = 500;
+  const PAD    = 36;
+  const BORDER = 6;
+
+  // Measure text to get dynamic body height
+  const cvs = document.createElement('canvas');
+  cvs.width  = W;
+  const ctx  = cvs.getContext('2d');
+
+  // --- helpers ---
+  function wrapText(ctx, text, x, y, maxW, lineH) {
+    const words = text.split(' ');
+    let line = '';
+    const lines = [];
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    lines.forEach((l, idx) => ctx.fillText(l, x, y + idx * lineH));
+    return lines.length;
+  }
+
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const edMap = {national:"Bharat",bihar:"Bihar",kerala:"Kerala",tamilnadu:"Tamil Nadu",bengal:"Bengal",northeast:"North East",middleeast:"Middle East War Desk"};
+  const edLabel = edMap[currentEdition]||"Bharat";
+  const metaText = `${edLabel} Edition  ·  ${today}`;
+
+  const innerW = W - PAD * 2;
+
+  // Pre-measure headline lines
+  ctx.font = `900 36px 'Noto Sans Devanagari', serif`;
+  const hlWords = s.headline || '';
+  let hlLines = 0;
+  {
+    const words = hlWords.split(' '); let line = '';
+    for (const w of words) {
+      const t = line ? line+' '+w : w;
+      if (ctx.measureText(t).width > innerW && line) { hlLines++; line=w; } else line=t;
+    }
+    hlLines++;
+  }
+
+  ctx.font = `400 22px 'Noto Sans Devanagari', Georgia, serif`;
+  const smWords = s.summary || '';
+  let smLines = 0;
+  {
+    const words = smWords.split(' '); let line = '';
+    for (const w of words) {
+      const t = line ? line+' '+w : w;
+      if (ctx.measureText(t).width > innerW && line) { smLines++; line=w; } else line=t;
+    }
+    smLines++;
+  }
+
+  const HL_LINE_H = 48, SM_LINE_H = 34;
+  const BODY_H = PAD + hlLines * HL_LINE_H + 20 + smLines * SM_LINE_H + 50 + PAD;
+  const FOOT_H = 52;
+  const H = BORDER*2 + MAST_H + IMG_H + BODY_H + FOOT_H;
+
+  cvs.height = H;
+
+  // === DRAW ===
+
+  // Outer double border bg
+  ctx.fillStyle = clr.dark;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = clr.cream;
+  ctx.fillRect(BORDER, BORDER, W - BORDER*2, H - BORDER*2);
+
+  // --- MASTHEAD ---
+  const mastY = BORDER;
+  ctx.fillStyle = clr.brown;
+  ctx.fillRect(BORDER, mastY, W - BORDER*2, MAST_H);
+
+  // Brand name
+  ctx.fillStyle = '#f5f0e8';
+  ctx.font = `900 42px 'Noto Sans Devanagari', sans-serif`;
+  ctx.textBaseline = 'middle';
+  ctx.fillText('लोकतंत्र वाणी', BORDER + PAD, mastY + MAST_H/2);
+
+  // Meta right
+  ctx.fillStyle = clr.lb;
+  ctx.font = `700 14px 'Source Sans 3', sans-serif`;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'right';
+  ctx.fillText(metaText, W - BORDER - PAD, mastY + MAST_H/2);
+  ctx.textAlign = 'left';
+
+  // Bottom border of mast
+  ctx.fillStyle = clr.dark;
+  ctx.fillRect(BORDER, mastY + MAST_H, W - BORDER*2, 4);
+
+  // --- IMAGE AREA ---
+  const imgY = BORDER + MAST_H + 4;
+  ctx.fillStyle = clr.db;
+  ctx.fillRect(BORDER, imgY, W - BORDER*2, IMG_H);
+
+  if (s.img) {
+    try {
+      const imgEl = new Image();
+      imgEl.crossOrigin = 'anonymous';
+      await new Promise((res, rej) => { imgEl.onload=res; imgEl.onerror=rej; imgEl.src=s.img; });
+      const availW = W - BORDER*2;
+      // Cover fit: scale to fill
+      const scaleX = availW / imgEl.naturalWidth;
+      const scaleY = IMG_H / imgEl.naturalHeight;
+      const scale  = Math.max(scaleX, scaleY);
+      const dw = imgEl.naturalWidth * scale;
+      const dh = imgEl.naturalHeight * scale;
+      const dx = BORDER + (availW - dw) / 2;
+      const dy = imgY + (IMG_H - dh) / 2;
+      // Apply brightness/contrast/saturation via globalCompositeOperation approximation
+      // (canvas filter is supported in modern browsers)
+      const adj = imgAdj[i] || {b:100,c:100,s:100};
+      ctx.filter = `brightness(${adj.b}%) contrast(${adj.c}%) saturate(${adj.s}%)`;
+      ctx.drawImage(imgEl, dx, dy, dw, dh);
+      ctx.filter = 'none';
+    } catch(e) { console.warn('img draw failed', e); }
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.font = '48px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🍌', W/2, imgY + IMG_H/2);
+    ctx.textAlign = 'left';
+  }
+
+  // Image bottom border
+  ctx.fillStyle = clr.dark;
+  ctx.fillRect(BORDER, imgY + IMG_H, W - BORDER*2, 4);
+
+  // --- BODY ---
+  const bodyY = imgY + IMG_H + 4;
+  ctx.fillStyle = clr.cream;
+  ctx.fillRect(BORDER, bodyY, W - BORDER*2, BODY_H);
+
+  let curY = bodyY + PAD;
+
+  // Headline
+  ctx.fillStyle = clr.dark;
+  ctx.font = `900 36px 'Noto Sans Devanagari', serif`;
+  ctx.textBaseline = 'top';
+  const hlActual = wrapText(ctx, s.headline || '', BORDER + PAD, curY, innerW, HL_LINE_H);
+  curY += hlActual * HL_LINE_H + 16;
+
+  // Divider under headline
+  ctx.fillStyle = clr.dark;
+  ctx.fillRect(BORDER + PAD, curY, innerW, 2.5);
+  curY += 18;
+
+  // Summary
+  ctx.fillStyle = '#2d2418';
+  ctx.font = `400 22px 'Noto Sans Devanagari', Georgia, serif`;
+  const smActual = wrapText(ctx, s.summary || '', BORDER + PAD, curY, innerW, SM_LINE_H);
+  curY += smActual * SM_LINE_H;
+
+  // --- FOOTER ---
+  const footY = bodyY + BODY_H;
+  ctx.fillStyle = clr.brown;
+  ctx.fillRect(BORDER, footY, W - BORDER*2, FOOT_H);
+
+  // Footer divider top
+  ctx.fillStyle = clr.dark;
+  ctx.fillRect(BORDER, footY, W - BORDER*2, 3);
+
+  const footItems = ['✉ enquiry@kautilya.world', '𝕏 @world_kautilya', '🌐 kautilya.world'];
+  const colW = (W - BORDER*2) / 3;
+  ctx.fillStyle = '#f5f0e8';
+  ctx.font = `700 15px 'Source Sans 3', sans-serif`;
+  ctx.textBaseline = 'middle';
+  footItems.forEach((txt, idx) => {
+    ctx.textAlign = idx === 0 ? 'left' : idx === 1 ? 'center' : 'right';
+    const fx = idx === 0 ? BORDER + PAD : idx === 1 ? W/2 : W - BORDER - PAD;
+    ctx.fillText(txt, fx, footY + FOOT_H/2 + 2);
+    if (idx < 2) {
+      ctx.fillStyle = clr.dark;
+      ctx.fillRect(BORDER + colW * (idx+1), footY + 8, 2, FOOT_H - 16);
+      ctx.fillStyle = '#f5f0e8';
+    }
+  });
+
+  // Trigger download
+  const a = document.createElement('a');
+  a.download = `loktantra-vaani-card-${i+1}-${new Date().toISOString().slice(0,10)}.png`;
+  a.href = cvs.toDataURL('image/png');
+  a.click();
 }
 
 function stretchImg(i, imgEl) {
@@ -882,16 +1137,7 @@ function panHTML(s, i) {
 }
 
 function patchImg(i) {
-  const el = document.getElementById('p'+i);
-  if (!el) return;
-  const s = stories[i];
-  const dk = s.isDark;
-  let html = '';
-  if (s.img) html = `<img id="img${i}" src="${s.img}" alt="" style="${getFilter(i)}" onload="stretchImg(${i},this)"/><button class="rgbtn" onclick="regenImg(${i})">↺</button>${toolbarHTML(i)}`;
-  else if (s.loading) html = `<div class="lwrap"><div class="spin${dk?'':' d'}"></div><span class="llbl">Generating…</span></div>`;
-  else if (s.err) html = `<div class="emsg">⚠️ ${s.err}</div><button class="rgbtn" onclick="regenImg(${i})">↺</button>`;
-  else html = `<div class="ph"><div class="ico">🍌</div></div>`;
-  el.querySelector('.pimg').innerHTML = html;
+  patchCardImg(i);
 }
 
 async function regenImg(i) {
