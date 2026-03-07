@@ -641,9 +641,24 @@ function smNotice(panel, msg, type) {
 <script>
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let prov = 'gemini', apiKey = '', lang = 'hi';
-const USE_PROXY = true; // route Gemini calls through /api/gemini to hide API key
+const USE_PROXY = true;
+let _serverKey = '';
+
+// Fetch server key once on load (for direct image calls that exceed proxy timeout)
+fetch('/api/key').then(r=>r.json()).then(d=>{ if(d.key) _serverKey=d.key; }).catch(()=>{});
+
+// Image models need direct calls (Vercel free plan has 10s timeout, image gen takes 15-30s)
+const IMAGE_MODELS = ['imagen-4.0-generate-001','gemini-3.1-flash-image-preview'];
 
 async function geminiProxy(model, body, action='generateContent') {
+  const key = apiKey || _serverKey;
+  // Direct call for image models (too slow for proxy timeout)
+  if (IMAGE_MODELS.includes(model) && key) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}?key=${key}`;
+    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    return r.json();
+  }
+  // Proxy for text generation (fast, keeps key hidden)
   if (USE_PROXY && (!apiKey || prov === 'gemini')) {
     const r = await fetch('/api/gemini', {
       method: 'POST',
@@ -652,8 +667,7 @@ async function geminiProxy(model, body, action='generateContent') {
     });
     return r.json();
   }
-  // Fallback: direct call if user provides their own key
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}?key=${key}`;
   const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
   return r.json();
 }

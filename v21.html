@@ -273,8 +273,19 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let prov = 'gemini', apiKey = '', lang = 'hi';
 const USE_PROXY = true;
+let _serverKey = '';
+
+fetch('/api/key').then(r=>r.json()).then(d=>{ if(d.key) _serverKey=d.key; }).catch(()=>{});
+
+const IMAGE_MODELS = ['imagen-4.0-generate-001','gemini-3.1-flash-image-preview'];
 
 async function geminiProxy(model, body, action='generateContent') {
+  const key = apiKey || _serverKey;
+  if (IMAGE_MODELS.includes(model) && key) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}?key=${key}`;
+    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    return r.json();
+  }
   if (USE_PROXY && (!apiKey || prov === 'gemini')) {
     const r = await fetch('/api/gemini', {
       method: 'POST',
@@ -283,7 +294,7 @@ async function geminiProxy(model, body, action='generateContent') {
     });
     return r.json();
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}?key=${key}`;
   const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
   return r.json();
 }
