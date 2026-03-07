@@ -640,7 +640,23 @@ function smNotice(panel, msg, type) {
 </script>
 <script>
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let prov = 'gemini', apiKey = 'AIzaSyB4uG3Y2iET0nr_iKKNa-ooR1k3jo_LohE', lang = 'hi';
+let prov = 'gemini', apiKey = '', lang = 'hi';
+const USE_PROXY = true; // route Gemini calls through /api/gemini to hide API key
+
+async function geminiProxy(model, body, action='generateContent') {
+  if (USE_PROXY && (!apiKey || prov === 'gemini')) {
+    const r = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model, action, body })
+    });
+    return r.json();
+  }
+  // Fallback: direct call if user provides their own key
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${action}?key=${apiKey}`;
+  const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  return r.json();
+}
 let sel = new Set(), allNews = [], stories = [], imgAdj = {}, imgTransform = {}, _moveTimer = null, currentEdition = 'national';
 
 const BASE_NEWS = [
@@ -662,9 +678,8 @@ const BASE_NEWS = [
 (function init() {
   allNews = [...BASE_NEWS];
   renderFeed(); // show base news instantly
-  // Pre-fill the API key input if hardcoded
-  const inp = document.getElementById('api-key');
-  if (inp && apiKey) { inp.value = apiKey; document.getElementById('keyok').style.display = 'block'; }
+  // If using server proxy, show key as configured
+  if (USE_PROXY) { document.getElementById('keyok').textContent = '✓ Server key active'; document.getElementById('keyok').style.display = 'block'; }
   // Auto-fetch live news
   setTimeout(() => refreshFeed(), 400);
 })();
@@ -728,7 +743,7 @@ function updateUI() {
   const btn = document.getElementById('gbtn');
   const note = document.getElementById('gnote');
   if (c === 0) { btn.disabled=true; note.textContent='Select up to 4 stories to begin'; }
-  else if (!apiKey) { btn.disabled=true; note.textContent=`${c} selected — add API key above`; }
+  else if (!apiKey && !USE_PROXY) { btn.disabled=true; note.textContent=`${c} selected — add API key above`; }
   else { btn.disabled=false; note.textContent=`${c} stor${c===1?'y':'ies'} selected · ready to generate!`; }
 }
 
@@ -796,14 +811,11 @@ After reading the article, return ONLY a valid JSON object (no markdown, no extr
 
   // Try url_context + google_search (Gemini reads the actual page)
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {method:'POST', headers:{'Content-Type':'application/json'},
-       body: JSON.stringify({
+    const d = await geminiProxy('gemini-2.0-flash', {
          contents:[{parts:[{text: prompt}]}],
          tools:[{url_context:{}}, {google_search:{}}],
          generationConfig:{temperature:0.3}
-       })});
-    const d = await r.json();
+       });
     const parts = d?.candidates?.[0]?.content?.parts || [];
     const txt = parts.find(p=>p.text)?.text || '';
     const jsonMatch = txt.match(/\{[\s\S]*\}/);
@@ -817,14 +829,11 @@ After reading the article, return ONLY a valid JSON object (no markdown, no extr
 
   // Fallback: use URL slug + google search
   try {
-    const r2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {method:'POST', headers:{'Content-Type':'application/json'},
-       body: JSON.stringify({
+    const d2 = await geminiProxy('gemini-2.0-flash', {
          contents:[{parts:[{text: `Search for news about this URL and summarize it: ${url}\nURL hint: ${urlPath} from ${domain}\nReturn JSON: {"headline":"catchy 10-word headline","content":"3 sentence summary"}`}]}],
          tools:[{google_search:{}}],
          generationConfig:{temperature:0.3}
-       })});
-    const d2 = await r2.json();
+       });
     const txt2 = d2?.candidates?.[0]?.content?.parts?.find(p=>p.text)?.text || '';
     const m2 = txt2.match(/\{[\s\S]*\}/);
     if (m2) {
@@ -850,7 +859,7 @@ function setEdition(val) {
   // Re-render newspaper if already generated
   if (stories.length > 0) renderNP();
   // Auto-fetch news for new edition
-  if (apiKey) refreshFeed();
+  if (apiKey || USE_PROXY) refreshFeed();
 }
 
 const EDITION_CONFIG = {
@@ -982,14 +991,11 @@ Return ONLY valid JSON array, no markdown, no explanation:
 [{"cat":"Politics","src":"Dainik Jagran","hl":"catchy local headline here"},...]
 Exactly 12 items.`;
 
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {method:'POST', headers:{'Content-Type':'application/json'},
-     body: JSON.stringify({
+  const d = await geminiProxy('gemini-2.0-flash', {
        contents:[{parts:[{text: prompt}]}],
        tools:[{google_search:{}}],
        generationConfig:{temperature:0.4}
-     })});
-  const d = await r.json();
+     });
   console.log('Gemini raw response:', JSON.stringify(d).slice(0,500));
   const parts = d?.candidates?.[0]?.content?.parts || [];
   // Collect ALL text parts (Gemini sometimes splits across parts)
@@ -1030,7 +1036,7 @@ Exactly 12 items.`;
 
 // ── GENERATE ──────────────────────────────────────────────────────────────────
 async function generate() {
-  if (!apiKey || sel.size===0) return;
+  if ((!apiKey && !USE_PROXY) || sel.size===0) return;
   const btn = document.getElementById('gbtn');
   btn.disabled=true; btn.textContent='⏳ Generating content...';
 
@@ -1094,9 +1100,7 @@ Return ONLY valid JSON (no markdown):
     if (prov==='gemini') {
       const body = {contents:[{parts:[{text:prompt}]}]};
       if (tools) body.tools = tools;
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      const d = await r.json();
+      const d = await geminiProxy('gemini-2.0-flash', body);
       txt = d?.candidates?.[0]?.content?.parts?.find(p=>p.text)?.text||'';
     } else {
       const r = await fetch('https://api.openai.com/v1/chat/completions',
@@ -1114,11 +1118,8 @@ Return ONLY valid JSON (no markdown):
 async function gemImg(prompt) {
   // Try Imagen 3 first (best quality, requires billing)
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-       body:JSON.stringify({instances:[{prompt:prompt+' Bold 3D cartoon newspaper style. Square. No text.'}],parameters:{sampleCount:1,aspectRatio:'1:1'}})});
-    const d = await r.json();
-    if (r.ok) {
+    const d = await geminiProxy('imagen-4.0-generate-001', {instances:[{prompt:prompt+' Bold 3D cartoon newspaper style. Square. No text.'}],parameters:{sampleCount:1,aspectRatio:'1:1'}}, 'predict');
+    if (!d.error) {
       const b = d?.predictions?.[0]?.bytesBase64Encoded;
       if (b) return `data:image/png;base64,${b}`;
     } else { console.warn('imagen-3',d?.error?.message); }
@@ -1126,11 +1127,8 @@ async function gemImg(prompt) {
 
   // Fallback: Gemini 2.0 Flash with image output (correct model name)
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
-      {method:'POST',headers:{'Content-Type':'application/json'},
-       body:JSON.stringify({contents:[{parts:[{text:prompt+' Bold 3D cartoon newspaper style. Square. No text.'}]}],generationConfig:{responseModalities:['IMAGE','TEXT']}})});
-    const d = await r.json();
-    if (r.ok) {
+    const d = await geminiProxy('gemini-3.1-flash-image-preview', {contents:[{parts:[{text:prompt+' Bold 3D cartoon newspaper style. Square. No text.'}]}],generationConfig:{responseModalities:['IMAGE','TEXT']}});
+    if (!d.error) {
       const p = d?.candidates?.[0]?.content?.parts?.find(p=>p.inlineData);
       if (p) return `data:${p.inlineData.mimeType};base64,${p.inlineData.data}`;
     } else { console.warn('gemini-3.1-flash-img',d?.error?.message); }
@@ -1262,7 +1260,7 @@ function patchImg(i) {
 
 async function regenImg(i) {
   const s = stories[i];
-  if (!s || !apiKey) return;
+  if (!s || (!apiKey && !USE_PROXY)) return;
   s.loading=true; s.img=null; s.err=null;
   patchImg(i);
   try {
