@@ -286,8 +286,30 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
 let prov = 'gemini', apiKey = '', lang = 'hi';
 const USE_PROXY = true;
 let _serverKey = '';
+let _hasOpenAI = false;
 
-fetch('/api/key').then(r=>r.json()).then(d=>{ if(d.key) _serverKey=d.key; }).catch(()=>{});
+fetch('/api/key').then(r=>r.json()).then(d=>{
+  if(d.key) _serverKey=d.key;
+  if(d.openai) _hasOpenAI=true;
+}).catch(()=>{});
+
+async function openaiProxy(url, body) {
+  if (USE_PROXY && _hasOpenAI && !apiKey) {
+    const r = await fetch('/api/openai', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ url, body })
+    });
+    return { resp: r, data: await r.json() };
+  }
+  const key = apiKey;
+  const r = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
+    body:JSON.stringify(body)
+  });
+  return { resp: r, data: await r.json() };
+}
 
 const IMAGE_MODELS = ['imagen-4.0-generate-001','gemini-3.1-flash-image-preview'];
 
@@ -750,10 +772,8 @@ Return ONLY valid JSON (no markdown):
       const d = await geminiProxy('gemini-2.0-flash', body);
       txt = d?.candidates?.[0]?.content?.parts?.find(p=>p.text)?.text||'';
     } else {
-      const r = await fetch('https://api.openai.com/v1/chat/completions',
-        {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-         body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:400})});
-      const d = await r.json();
+      const {data: d} = await openaiProxy('https://api.openai.com/v1/chat/completions',
+        {model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:400});
       txt = d?.choices?.[0]?.message?.content||'';
     }
     const jsonMatch = txt.match(/\{[\s\S]*\}/);
@@ -786,13 +806,11 @@ async function gemImg(prompt) {
 
 async function oaiImg(prompt) {
   const styledPrompt = prompt + ' Bold 3D cartoon editorial newspaper style.';
+  const url = 'https://api.openai.com/v1/images/generations';
   // Try GPT Image 1 (Sora) first — best quality
   try {
-    const r = await fetch('https://api.openai.com/v1/images/generations',
-      {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-       body:JSON.stringify({model:'gpt-image-1',prompt:styledPrompt,n:1,size:'1024x1024',quality:'medium'})});
-    const d = await r.json();
-    if (r.ok) {
+    const {resp, data: d} = await openaiProxy(url, {model:'gpt-image-1',prompt:styledPrompt,n:1,size:'1024x1024',quality:'medium'});
+    if (resp.ok || !d.error) {
       const b = d?.data?.[0]?.b64_json;
       if (b) return `data:image/png;base64,${b}`;
     } else { console.warn('gpt-image-1', d?.error?.message); }
@@ -800,13 +818,12 @@ async function oaiImg(prompt) {
   // Fallback: DALL-E 3, then DALL-E 2
   for (const {m,sz} of [{m:'dall-e-3',sz:'1024x1024'},{m:'dall-e-2',sz:'512x512'}]) {
     try {
-      const r = await fetch('https://api.openai.com/v1/images/generations',
-        {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-         body:JSON.stringify({model:m,prompt:styledPrompt,n:1,size:sz,response_format:'b64_json'})});
-      const d = await r.json();
-      if (!r.ok){console.warn(m,d?.error?.message);continue;}
-      const b = d?.data?.[0]?.b64_json;
-      if (b) return `data:image/png;base64,${b}`;
+      const {resp, data: d} = await openaiProxy(url, {model:m,prompt:styledPrompt,n:1,size:sz,response_format:'b64_json'});
+      if (resp.ok || !d.error){
+        const b = d?.data?.[0]?.b64_json;
+        if (b) return `data:image/png;base64,${b}`;
+      }
+      console.warn(m, d?.error?.message);
     } catch(e){console.warn(e);}
   }
   throw new Error('OpenAI image failed — check billing at platform.openai.com');
