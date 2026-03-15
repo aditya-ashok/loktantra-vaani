@@ -422,7 +422,7 @@ const AUTHOR_PRESETS = {
 };
 
 // Fetch server keys
-fetch('/api/key').then(r=>r.json()).then(d=>{
+const _keyReady = fetch('/api/key').then(r=>r.json()).then(d=>{
   if(d.key) _serverKey=d.key;
   if(d.openai) _hasOpenAI=true;
 }).catch(()=>{});
