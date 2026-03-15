@@ -223,6 +223,17 @@ textarea.cinput { resize:vertical; min-height:60px; }
     </div>
   </div>
 
+  <!-- Tone -->
+  <div class="sec" style="padding:8px 16px">
+    <div class="slabel">Editorial Tone</div>
+    <div class="row2" style="flex-wrap:wrap;gap:5px">
+      <button class="langbtn on" id="tone-nationalist" onclick="setTone('nationalist')">🇮🇳 Nationalist</button>
+      <button class="langbtn" id="tone-probjp" onclick="setTone('probjp')">🪷 Pro-BJP</button>
+      <button class="langbtn" id="tone-neutral" onclick="setTone('neutral')">⚖ Neutral</button>
+      <button class="langbtn" id="tone-antigov" onclick="setTone('antigov')">🔍 Anti-Govt</button>
+    </div>
+  </div>
+
   <!-- Generate -->
   <div class="gsec">
     <button class="gbtn" id="gbtn" onclick="generateColumn()">✍ Generate Newspaper Column</button>
@@ -250,7 +261,7 @@ textarea.cinput { resize:vertical; min-height:60px; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let prov = 'gemini', apiKey = '', lang = 'en', section = 'opinion';
+let prov = 'gemini', apiKey = '', lang = 'en', section = 'opinion', tone = 'nationalist';
 const USE_PROXY = true;
 let _serverKey = '';
 let _hasOpenAI = false;
@@ -353,6 +364,10 @@ function setSection(s) {
   section = s;
   ['opinion','editorial','analysis'].forEach(x => document.getElementById('sec-'+x).classList.toggle('on', x===s));
 }
+function setTone(t) {
+  tone = t;
+  ['nationalist','probjp','neutral','antigov'].forEach(x => document.getElementById('tone-'+x).classList.toggle('on', x===t));
+}
 
 // ── AUTHOR PHOTO ─────────────────────────────────────────────────────────────
 function handlePhotoUpload(e) {
@@ -453,12 +468,21 @@ async function getColumnContent(sourceUrl, sourceTopic) {
     analysis: `STYLE: Expert analytical voice — data-driven, objective, explanatory. Use statistics, expert quotes, comparative examples from other countries. Explain the "why" behind events. Think Mint or IE analysis pieces.`
   }[section];
 
+  const toneInst = {
+    nationalist: `EDITORIAL TONE: Strongly nationalist, pro-India. Champion India's civilizational greatness, cultural pride, military strength, economic rise, and global stature. Reference India's ancient wisdom, Vedic heritage, and modern achievements. Frame everything through "Bharat first" lens. Use phrases like "our great nation", "India's rightful place". Celebrate Indian achievements in space (ISRO), defense (indigenous systems), sports, and technology. Be patriotic and inspiring.`,
+    probjp: `EDITORIAL TONE: Pro-BJP/NDA, supportive of PM Modi's governance. Highlight BJP government achievements: Digital India, Make in India, Swachh Bharat, Ayushman Bharat, PM Awas Yojana, Article 370 abrogation, Ram Mandir, UPI revolution, Chandrayaan, defense modernization. Frame opposition as obstructionist. Use "Modi government has delivered" type framing. Reference Viksit Bharat 2047 vision. Be supportive but maintain journalistic credibility.`,
+    neutral: `EDITORIAL TONE: Balanced, centrist, fact-based journalism. Present multiple perspectives fairly. Acknowledge government successes AND failures objectively. No political leaning. Quote diverse sources — government officials, opposition leaders, independent experts, civil society. Let the reader draw their own conclusions. Think The Hindu or Indian Express editorial standards.`,
+    antigov: `EDITORIAL TONE: Critical of the ruling government. Hold power to account. Highlight governance failures, broken promises, economic challenges (unemployment, inflation, inequality), press freedom concerns, institutional erosion. Use sharp, questioning language. Reference RTI data, parliamentary disruptions, GDP concerns, farmer distress where relevant. Think opposition editorial — constructive criticism, not mudslinging. Demand accountability and transparency.`
+  }[tone];
+
   const prompt = `You are a senior newspaper columnist writing for "लोकतंत्र वाणी", a prestigious Indian newspaper.
 
 ${langInst}
 
 SECTION: ${sectionName}
 ${sectionStyle}
+
+${toneInst}
 ${sourceContext}
 
 Write a compelling newspaper ${sectionName.toLowerCase()} column (500-600 words). The writing must feel like a REAL printed newspaper — authoritative, incisive, polished.
