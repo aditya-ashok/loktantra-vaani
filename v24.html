@@ -2,8 +2,13 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>लोकतंत्र वाणी — AI News Card Studio</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#f59e0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -168,10 +173,82 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
 @keyframes fadein { from { opacity:0;transform:translateY(10px); } to { opacity:1;transform:translateY(0); } }
 .fadein { animation:fadein .3s ease; }
 
+/* ── RSS FEEDS ── */
+.rss-chips { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+.rss-chip { background:#0f172a; color:#64748b; border:1px solid #1e293b; border-radius:20px; padding:3px 9px 3px 8px; font-size:10px; display:flex; align-items:center; gap:5px; }
+.rss-chip .rss-x { cursor:pointer; color:#475569; font-size:11px; }
+.rss-chip .rss-x:hover { color:#f87171; }
+
+/* ── TEMPLATE GALLERY ── */
+.tpl-grid { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; }
+.tpl-grid::-webkit-scrollbar { height:2px; }
+.tpl-grid::-webkit-scrollbar-thumb { background:#1e293b; }
+.tpl-card { min-width:58px; padding:6px 4px; border-radius:6px; border:1.5px solid #1e293b; background:transparent; color:#475569; font-size:9px; font-weight:700; cursor:pointer; transition:all .15s; text-align:center; font-family:'Source Sans 3',sans-serif; flex-shrink:0; }
+.tpl-card .tpl-ico { font-size:20px; margin-bottom:2px; }
+.tpl-card.on { border-color:var(--gold); background:rgba(245,158,11,.1); color:var(--gold); }
+
+/* ── HERO TEMPLATE ── */
+.np-hero { display:flex; flex-direction:column; }
+.np-hero .hero-main { position:relative; }
+.np-hero .hero-img { height:320px; position:relative; overflow:hidden; clip-path:inset(0); }
+.np-hero .hero-img img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+.np-hero .hero-overlay { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,.85)); padding:18px 16px 14px; }
+.np-hero .hero-hl { font-family:'Noto Sans Devanagari',serif; font-size:clamp(18px,3.5vw,26px); font-weight:900; color:#fff; line-height:1.3; text-shadow:0 2px 8px rgba(0,0,0,.5); }
+.np-hero .hero-sm { padding:14px 16px; font-family:'Noto Sans Devanagari',Georgia,serif; font-size:clamp(11px,1.8vw,13px); line-height:1.7; color:var(--dark); background:var(--cream); }
+
+/* ── BREAKING TEMPLATE ── */
+.np-breaking .break-banner { background:#b91c1c; color:#fff; text-align:center; padding:6px 10px; font-family:'Playfair Display',serif; font-size:14px; font-weight:900; letter-spacing:2px; text-transform:uppercase; animation:breakpulse 1.5s ease-in-out infinite; }
+@keyframes breakpulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+.np-breaking .break-stack { display:flex; flex-direction:column; }
+.np-breaking .break-item { display:flex; border-bottom:2px solid var(--dark); }
+.np-breaking .break-img { width:200px; height:160px; position:relative; overflow:hidden; flex-shrink:0; clip-path:inset(0); }
+.np-breaking .break-img img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+.np-breaking .break-txt { flex:1; padding:12px 14px; display:flex; flex-direction:column; justify-content:center; }
+.np-breaking .break-hl { font-family:'Noto Sans Devanagari',serif; font-size:clamp(13px,2.2vw,16px); font-weight:900; line-height:1.35; color:var(--dark); margin-bottom:6px; }
+.np-breaking .break-sm { font-family:'Noto Sans Devanagari',Georgia,serif; font-size:clamp(9px,1.4vw,11px); line-height:1.6; color:#5c4433; }
+
+/* ── SPORTS TEMPLATE ── */
+.np-sports .sport-hero { position:relative; height:220px; overflow:hidden; clip-path:inset(0); border-bottom:3px solid var(--dark); }
+.np-sports .sport-hero img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+.np-sports .sport-hero-overlay { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,.9)); padding:14px; }
+.np-sports .sport-hero-hl { font-family:'Noto Sans Devanagari',serif; font-size:clamp(16px,3vw,22px); font-weight:900; color:#fff; }
+.np-sports .sport-row { display:grid; grid-template-columns:1fr 1fr; }
+.np-sports .sport-card { padding:10px 12px; border:1px solid var(--dark); }
+.np-sports .sport-card:first-child { border-right:2px solid var(--dark); }
+.np-sports .sport-hl { font-family:'Noto Sans Devanagari',serif; font-size:clamp(11px,1.8vw,13px); font-weight:900; line-height:1.35; color:var(--dark); margin-bottom:4px; }
+.np-sports .sport-sm { font-size:clamp(8px,1.2vw,10px); line-height:1.5; color:#5c4433; font-family:'Noto Sans Devanagari',Georgia,serif; }
+
+/* ── OPINION TEMPLATE ── */
+.np-opinion .oped-main { padding:20px; background:var(--cream); }
+.np-opinion .oped-label { font-family:'Playfair Display',serif; font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; border-bottom:2px solid var(--gold); padding-bottom:4px; display:inline-block; }
+.np-opinion .oped-hl { font-family:'Noto Sans Devanagari',serif; font-size:clamp(20px,4vw,30px); font-weight:900; line-height:1.25; color:var(--dark); margin-bottom:12px; }
+.np-opinion .oped-quote { border-left:4px solid var(--gold); padding:8px 14px; margin:12px 0; font-style:italic; font-family:Georgia,serif; font-size:clamp(12px,2vw,15px); color:var(--brown); line-height:1.6; }
+.np-opinion .oped-body { font-family:'Noto Sans Devanagari',Georgia,serif; font-size:clamp(10px,1.6vw,12px); line-height:1.8; color:#2d2418; column-count:2; column-gap:16px; }
+.np-opinion .oped-img { height:180px; position:relative; overflow:hidden; clip-path:inset(0); border-top:2px solid var(--dark); }
+.np-opinion .oped-img img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+
+/* ── DRAG & DROP ── */
+.pan[draggable=true] { cursor:grab; }
+.pan.dragging { opacity:.4; border-style:dashed !important; }
+.pan.drag-over { border-color:var(--gold) !important; box-shadow:inset 0 0 20px rgba(245,158,11,.15); }
+.dnd-handle { position:absolute; top:3px; left:3px; color:rgba(255,255,255,.3); font-size:14px; cursor:grab; z-index:5; line-height:1; padding:2px; }
+.pan.lt .dnd-handle { color:rgba(0,0,0,.2); }
+
+/* ── VOICE NARRATION ── */
+.voice-btn { background:var(--dark); color:#e2e8f0; border:2px solid #475569; border-radius:8px; padding:10px 16px; font-weight:700; cursor:pointer; font-size:12px; font-family:'Source Sans 3',sans-serif; transition:all .15s; display:flex; align-items:center; gap:6px; }
+.voice-btn:hover { border-color:var(--gold); color:var(--gold); }
+.voice-btn.playing { border-color:#4ade80; color:#4ade80; animation:vpulse 1.2s ease-in-out infinite; }
+@keyframes vpulse { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.3)} 50%{box-shadow:0 0 12px 4px rgba(74,222,128,.15)} }
+.voice-controls { display:flex; align-items:center; gap:8px; }
+.voice-speed { background:#090d14; border:1px solid #1e293b; border-radius:5px; color:#94a3b8; font-size:10px; padding:4px 6px; font-family:'Source Sans 3',sans-serif; cursor:pointer; }
+
 @media (max-width:860px) {
   .app { grid-template-columns:1fr; }
   .left { height:auto; position:static; }
   .feed { max-height:380px; }
+  .np-breaking .break-item { flex-direction:column; }
+  .np-breaking .break-img { width:100%; height:140px; }
+  .np-opinion .oped-body { column-count:1; }
 }
 
 /* ── SHARE MODAL ─────────────────────────── */
@@ -265,6 +342,12 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
     </div>
   </div>
 
+  <!-- Template -->
+  <div class="sec">
+    <div class="slabel">Card Template</div>
+    <div class="tpl-grid" id="tplGrid"></div>
+  </div>
+
   <!-- Edition -->
   <div class="sec" style="padding:8px 16px;">
     <div class="slabel">Edition</div>
@@ -298,6 +381,16 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
       <input class="cinput" type="text" id="cinput" placeholder="Paste URL or type headline..." onkeydown="if(event.key==='Enter')addCustom()" />
       <button class="abtn" onclick="addCustom()">Add</button>
     </div>
+  </div>
+
+  <!-- RSS Feeds -->
+  <div class="csec">
+    <div class="slabel" style="margin-bottom:6px">📡 RSS Feeds</div>
+    <div class="row2">
+      <input class="cinput" type="url" id="rssInput" placeholder="https://example.com/rss.xml" onkeydown="if(event.key==='Enter')addRSSFeed()" />
+      <button class="abtn" onclick="addRSSFeed()">Add</button>
+    </div>
+    <div class="rss-chips" id="rssChips"></div>
   </div>
 
   <!-- Generate -->
@@ -639,6 +732,14 @@ function smNotice(panel, msg, type) {
 
 </script>
 <script>
+// ── HELPERS (needed early) ───────────────────────────────────────────────────
+function smLoad(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e) { return def; }
+}
+function smSave(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let prov = 'gemini', apiKey = '', lang = 'hi';
 const USE_PROXY = true;
@@ -1438,6 +1539,522 @@ async function removeBg(i) {
   } catch(e) { console.warn('removeBg error',e); }
   if (btn) { btn.textContent='✂ Remove BG'; btn.disabled=false; btn.classList.remove('loading'); }
 }
+
+// ── TEMPLATE GALLERY ─────────────────────────────────────────────────────────
+const TEMPLATES = {
+  grid2x2: { label:'2x2 Grid', icon:'📰', maxStories:4 },
+  hero:    { label:'Hero',     icon:'📋', maxStories:1 },
+  breaking:{ label:'Breaking', icon:'🔴', maxStories:2 },
+  sports:  { label:'Sports',   icon:'🏏', maxStories:3 },
+  opinion: { label:'Opinion',  icon:'✍',  maxStories:2 },
+};
+let currentTemplate = 'grid2x2';
+
+function renderTemplateGallery() {
+  document.getElementById('tplGrid').innerHTML = Object.entries(TEMPLATES).map(([k,t]) =>
+    `<button class="tpl-card${k===currentTemplate?' on':''}" onclick="setTemplate('${k}')"><div class="tpl-ico">${t.icon}</div>${t.label}</button>`
+  ).join('');
+}
+
+function setTemplate(key) {
+  currentTemplate = key;
+  const max = TEMPLATES[key].maxStories;
+  // Trim selection if needed
+  while (sel.size > max) { const first = sel.values().next().value; sel.delete(first); document.getElementById('ni-'+first)?.classList.remove('on'); }
+  renderTemplateGallery();
+  updateUI();
+  if (stories.length > 0) renderNP();
+}
+
+// Override updateUI to use template max
+const _origUpdateUI = updateUI;
+updateUI = function() {
+  const max = TEMPLATES[currentTemplate].maxStories;
+  const c = sel.size;
+  document.getElementById('badge').textContent = `${c} / ${max}`;
+  const btn = document.getElementById('gbtn');
+  const note = document.getElementById('gnote');
+  if (c === 0) { btn.disabled=true; note.textContent=`Select up to ${max} stor${max===1?'y':'ies'} to begin`; }
+  else if (!apiKey && !USE_PROXY) { btn.disabled=true; note.textContent=`${c} selected — add API key above`; }
+  else { btn.disabled=false; note.textContent=`${c} stor${c===1?'y':'ies'} selected · ready to generate!`; }
+};
+
+// Override toggle to use template max
+toggle = function(id) {
+  const max = TEMPLATES[currentTemplate].maxStories;
+  if (sel.has(id)) {
+    sel.delete(id);
+    document.getElementById('ni-'+id)?.classList.remove('on');
+  } else {
+    if (sel.size >= max) {
+      const first = sel.values().next().value;
+      sel.delete(first);
+      document.getElementById('ni-'+first)?.classList.remove('on');
+    }
+    sel.add(id);
+    document.getElementById('ni-'+id)?.classList.add('on');
+  }
+  updateUI();
+};
+
+// Override generate to use template max
+const _origGenerate = generate;
+generate = async function() {
+  if ((!apiKey && !USE_PROXY) || sel.size===0) return;
+  const max = TEMPLATES[currentTemplate].maxStories;
+  const btn = document.getElementById('gbtn');
+  btn.disabled=true; btn.textContent='⏳ Generating content...';
+
+  const selected = allNews.filter(n => sel.has(n.id)).slice(0,max);
+  while (selected.length < max) selected.push(null);
+
+  stories = await Promise.all(selected.map(async(n,i) => {
+    if (!n) return {id:`e${i}`,isDark:i%2===0,headline:'',summary:'',imagePrompt:'',img:null,loading:false,err:null,empty:true};
+    const c = await getContent(n.hl, n);
+    return {id:n.id, isDark:i%2===0, ...c, img:null, loading:false, err:null};
+  }));
+
+  renderNP();
+  btn.textContent='⏳ Generating images...';
+
+  for (let i=0; i<stories.length; i++) {
+    if (stories[i].empty || !stories[i].imagePrompt) continue;
+    stories[i].loading=true;
+    patchImg(i);
+    try {
+      stories[i].img = prov==='openai' ? await oaiImg(stories[i].imagePrompt) : await gemImg(stories[i].imagePrompt);
+      stories[i].loading=false;
+    } catch(e) {
+      stories[i].loading=false;
+      stories[i].err=e.message.slice(0,85);
+    }
+    patchImg(i);
+  }
+
+  btn.disabled=false;
+  btn.textContent='↺ Regenerate Card';
+};
+
+// Template-specific renderers
+function npWrapper(innerContent, extraClass) {
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const edNames = {national:"Bharat",bihar:"Bihar",kerala:"Kerala",tamilnadu:"Tamil Nadu",bengal:"Bengal",northeast:"North East",middleeast:"Middle East War Desk"};
+  return `<div class="np fadein${extraClass?' '+extraClass:''}" id="np">
+    <div class="mast"><h1>लोकतंत्र वाणी</h1></div>
+    <div class="ibar">
+      <span>${edNames[currentEdition]||"Bharat"} Edition</span>
+      <span class="it">Crafted by Kautilya World</span>
+      <span>${today}</span>
+    </div>
+    ${innerContent}
+    <div class="npfoot">
+      <div class="fc br">✉ enquiry@kautilya.world</div>
+      <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
+      <div class="fc br2">🌐 kautilya.world</div>
+    </div>
+  </div>`;
+}
+
+function renderGrid2x2() {
+  return `<div class="sgrid">${stories.map((s,i)=>panHTML(s,i)).join('')}</div>`;
+}
+
+function renderHero() {
+  const s = stories[0];
+  if (!s || s.empty) return `<div style="padding:40px;text-align:center;color:#999">Select a story to generate</div>`;
+  let imgHTML = '';
+  if (s.img) imgHTML = `<img id="img0" src="${s.img}" alt="" style="${getFilter(0)}" onload="stretchImg(0,this)"/>${toolbarHTML(0)}`;
+  else if (s.loading) imgHTML = `<div class="lwrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div class="spin"></div><span class="llbl">Generating…</span></div>`;
+  else if (s.err) imgHTML = `<div class="emsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">⚠️ ${s.err}</div>`;
+  else imgHTML = `<div class="ph" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div class="ico">🍌</div></div>`;
+  return `<div class="np-hero">
+    <div class="hero-main">
+      <div class="hero-img">${imgHTML}</div>
+      <div class="hero-overlay"><div class="hero-hl">${s.headline}</div></div>
+    </div>
+    <div class="hero-sm">${s.summary}</div>
+  </div>`;
+}
+
+function renderBreaking() {
+  return `<div class="np-breaking">
+    <div class="break-banner">⚡ BREAKING NEWS ⚡</div>
+    <div class="break-stack">${stories.slice(0,2).map((s,i) => {
+      if (s.empty) return '';
+      let imgHTML = '';
+      if (s.img) imgHTML = `<img id="img${i}" src="${s.img}" alt="" style="${getFilter(i)}" onload="stretchImg(${i},this)"/>${toolbarHTML(i)}`;
+      else if (s.loading) imgHTML = `<div class="lwrap"><div class="spin"></div><span class="llbl">Generating…</span></div>`;
+      else if (s.err) imgHTML = `<div class="emsg">⚠️ ${s.err}</div>`;
+      else imgHTML = `<div class="ph"><div class="ico">🍌</div></div>`;
+      return `<div class="break-item" style="background:var(--cream)">
+        <div class="break-img">${imgHTML}</div>
+        <div class="break-txt">
+          <div class="break-hl">${s.headline}</div>
+          <div class="break-sm">${s.summary}</div>
+        </div>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+function renderSports() {
+  const hero = stories[0];
+  let heroImg = '';
+  if (hero && !hero.empty) {
+    if (hero.img) heroImg = `<img id="img0" src="${hero.img}" alt="" style="${getFilter(0)}" onload="stretchImg(0,this)"/>${toolbarHTML(0)}`;
+    else if (hero.loading) heroImg = `<div class="lwrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div class="spin"></div></div>`;
+    else if (hero.err) heroImg = `<div class="emsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">⚠️ ${hero.err}</div>`;
+  }
+  return `<div class="np-sports">
+    <div class="sport-hero">${heroImg}<div class="sport-hero-overlay"><div class="sport-hero-hl">${hero?.headline||''}</div></div></div>
+    <div style="padding:6px 10px;font-size:10px;color:var(--brown);background:var(--cream);border-bottom:2px solid var(--dark);font-family:'Source Sans 3';font-weight:700">${hero?.summary||''}</div>
+    <div class="sport-row">${stories.slice(1,3).map((s,idx) => {
+      const i = idx+1;
+      if (s.empty) return `<div class="sport-card" style="background:var(--cream)"></div>`;
+      return `<div class="sport-card" style="background:var(--cream)">
+        <div class="sport-hl">${s.headline}</div>
+        <div class="sport-sm">${s.summary}</div>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+function renderOpinion() {
+  const main = stories[0];
+  const second = stories[1];
+  let imgHTML = '';
+  if (second && !second.empty && second.img) imgHTML = `<img id="img1" src="${second.img}" alt="" style="${getFilter(1)}" onload="stretchImg(1,this)"/>${toolbarHTML(1)}`;
+  else if (second && second.loading) imgHTML = `<div class="lwrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div class="spin"></div></div>`;
+  return `<div class="np-opinion">
+    <div class="oped-main">
+      <div class="oped-label">Opinion / Editorial</div>
+      <div class="oped-hl">${main?.headline||''}</div>
+      <div class="oped-quote">${main?.summary||''}</div>
+      ${second && !second.empty ? `<div class="oped-body">${second.headline}. ${second.summary}</div>` : ''}
+    </div>
+    ${second && !second.empty ? `<div class="oped-img">${imgHTML}</div>` : ''}
+  </div>`;
+}
+
+// Override renderNP to dispatch by template
+renderNP = function() {
+  let inner = '';
+  switch(currentTemplate) {
+    case 'hero': inner = renderHero(); break;
+    case 'breaking': inner = renderBreaking(); break;
+    case 'sports': inner = renderSports(); break;
+    case 'opinion': inner = renderOpinion(); break;
+    default: inner = renderGrid2x2(); break;
+  }
+  document.getElementById('right').innerHTML = `
+    ${npWrapper(inner, currentTemplate !== 'grid2x2' ? 'np-tpl-'+currentTemplate : '')}
+    <div class="dlrow">
+      <button class="dlbtn" onclick="dlPNG()">⬇ Download PNG</button>
+      <button class="dlbtn gold" onclick="generate()">↺ Regenerate</button>
+    </div>
+    <div class="dlrow" style="margin-top:8px">
+      <button class="dlbtn" style="background:#16a34a;border-color:#16a34a;color:#fff;font-size:12px" onclick="openShareModal('wa')">📱 WhatsApp Share</button>
+      <button class="dlbtn" style="background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-size:12px" onclick="openShareModal('em')">✉ Email Share</button>
+    </div>
+    <div class="dlrow" style="margin-top:8px">
+      <div class="voice-controls">
+        <button class="voice-btn" id="voiceBtn" onclick="toggleNarration()">🔊 Narrate</button>
+        <select class="voice-speed" id="voiceSpeed" onchange="setNarrationSpeed(this.value)">
+          <option value="0.7">0.7x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.3">1.3x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+      </div>
+    </div>`;
+};
+
+// Override patchImg to work with all templates
+const _origPatchImg = patchImg;
+patchImg = function(i) {
+  // For non-grid templates, just re-render the whole thing
+  if (currentTemplate !== 'grid2x2') {
+    renderNP();
+    return;
+  }
+  _origPatchImg(i);
+};
+
+// ── DRAG & DROP ─────────────────────────────────────────────────────────────
+let _dragSrcIdx = null;
+
+// Override panHTML to add drag support for grid2x2
+const _origPanHTML = panHTML;
+panHTML = function(s, i) {
+  const dk = s.isDark;
+  const draggable = currentTemplate === 'grid2x2' && !s.empty;
+  let img = '';
+  if (s.empty) img = `<div class="ph"><div class="ico">—</div></div>`;
+  else if (s.img) img = `<img id="img${i}" src="${s.img}" alt="" style="${getFilter(i)}" onload="stretchImg(${i},this)"/><button class="rgbtn" onclick="regenImg(${i})">↺</button>${toolbarHTML(i)}`;
+  else if (s.loading) img = `<div class="lwrap"><div class="spin${dk?'':' d'}"></div><span class="llbl">Generating…</span></div>`;
+  else if (s.err) img = `<div class="emsg">⚠️ ${s.err}</div><button class="rgbtn" onclick="regenImg(${i})">↺</button>`;
+  else img = `<div class="ph"><div class="ico">🍌</div><div class="hint">Loading…</div></div>`;
+  return `<div class="pan ${dk?'dk':'lt'}" id="p${i}" ${draggable?`draggable="true" ondragstart="onDragStart(event,${i})" ondragover="onDragOver(event,${i})" ondragleave="onDragLeave(event)" ondrop="onDrop(event,${i})" ondragend="onDragEnd(event)" ontouchstart="onTouchDragStart(event,${i})" ontouchmove="onTouchDragMove(event)" ontouchend="onTouchDragEnd(event,${i})"`:''}style="position:relative">
+    ${draggable?'<div class="dnd-handle">⠿</div>':''}
+    <div class="phl">${s.headline}</div>
+    <div class="pimg">${img}</div>
+    <div class="psm">${s.summary}</div>
+  </div>`;
+};
+
+function onDragStart(e, i) {
+  _dragSrcIdx = i;
+  e.dataTransfer.effectAllowed = 'move';
+  e.target.closest('.pan')?.classList.add('dragging');
+}
+function onDragOver(e, i) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.pan').forEach(p => p.classList.remove('drag-over'));
+  e.target.closest('.pan')?.classList.add('drag-over');
+}
+function onDragLeave(e) {
+  e.target.closest('.pan')?.classList.remove('drag-over');
+}
+function onDrop(e, i) {
+  e.preventDefault();
+  document.querySelectorAll('.pan').forEach(p => p.classList.remove('drag-over','dragging'));
+  if (_dragSrcIdx === null || _dragSrcIdx === i) return;
+  // Swap stories
+  [stories[_dragSrcIdx], stories[i]] = [stories[i], stories[_dragSrcIdx]];
+  // Swap isDark
+  stories[_dragSrcIdx].isDark = _dragSrcIdx%2===0;
+  stories[i].isDark = i%2===0;
+  // Swap adjustments
+  [imgAdj[_dragSrcIdx], imgAdj[i]] = [imgAdj[i], imgAdj[_dragSrcIdx]];
+  [imgTransform[_dragSrcIdx], imgTransform[i]] = [imgTransform[i], imgTransform[_dragSrcIdx]];
+  _dragSrcIdx = null;
+  renderNP();
+}
+function onDragEnd(e) {
+  document.querySelectorAll('.pan').forEach(p => p.classList.remove('drag-over','dragging'));
+  _dragSrcIdx = null;
+}
+
+// Touch drag support for mobile
+let _touchDragIdx = null;
+function onTouchDragStart(e, i) { _touchDragIdx = i; }
+function onTouchDragMove(e) { /* visual feedback could go here */ }
+function onTouchDragEnd(e, i) {
+  if (_touchDragIdx === null || _touchDragIdx === i) { _touchDragIdx = null; return; }
+  const touch = e.changedTouches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.pan');
+  if (target) {
+    const targetIdx = parseInt(target.id.replace('p',''));
+    if (!isNaN(targetIdx) && targetIdx !== _touchDragIdx) {
+      [stories[_touchDragIdx], stories[targetIdx]] = [stories[targetIdx], stories[_touchDragIdx]];
+      stories[_touchDragIdx].isDark = _touchDragIdx%2===0;
+      stories[targetIdx].isDark = targetIdx%2===0;
+      [imgAdj[_touchDragIdx], imgAdj[targetIdx]] = [imgAdj[targetIdx], imgAdj[_touchDragIdx]];
+      [imgTransform[_touchDragIdx], imgTransform[targetIdx]] = [imgTransform[targetIdx], imgTransform[_touchDragIdx]];
+      renderNP();
+    }
+  }
+  _touchDragIdx = null;
+}
+
+// ── VOICE NARRATION ─────────────────────────────────────────────────────────
+let _speechPlaying = false;
+let _speechRate = 1;
+
+function buildNarrationText() {
+  const edNames = {national:"Bharat",bihar:"Bihar",kerala:"Kerala",tamilnadu:"Tamil Nadu",bengal:"Bengal",northeast:"North East",middleeast:"Middle East War Desk"};
+  const ed = edNames[currentEdition] || 'Bharat';
+  let intro, transition;
+  if (lang === 'en') {
+    intro = `Loktantra Vaani, ${ed} Edition. Today's headlines.`;
+    transition = 'Next story.';
+  } else {
+    intro = `लोकतंत्र वाणी, ${ed} संस्करण। आज की मुख्य खबरें।`;
+    transition = 'अगली खबर।';
+  }
+  let parts = [intro];
+  stories.forEach((s,i) => {
+    if (s.empty) return;
+    if (i > 0) parts.push(transition);
+    parts.push(s.headline + '. ' + s.summary);
+  });
+  return parts.join(' ');
+}
+
+function toggleNarration() {
+  if (_speechPlaying) { stopNarration(); return; }
+  startNarration();
+}
+
+function startNarration() {
+  if (!window.speechSynthesis) { alert('Speech synthesis not supported in this browser'); return; }
+  speechSynthesis.cancel();
+
+  if (lang === 'bi') {
+    // Bilingual: chain Hindi headlines then English summaries
+    const utterances = [];
+    stories.forEach(s => {
+      if (s.empty) return;
+      const uHi = new SpeechSynthesisUtterance(s.headline);
+      uHi.lang = 'hi-IN'; uHi.rate = _speechRate;
+      const uEn = new SpeechSynthesisUtterance(s.summary);
+      uEn.lang = 'en-IN'; uEn.rate = _speechRate;
+      utterances.push(uHi, uEn);
+    });
+    if (utterances.length === 0) return;
+    utterances[utterances.length-1].onend = () => { _speechPlaying = false; updateVoiceBtn(); };
+    utterances.forEach(u => speechSynthesis.speak(u));
+  } else {
+    const text = buildNarrationText();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang === 'en' ? 'en-IN' : 'hi-IN';
+    utter.rate = _speechRate;
+    utter.onend = () => { _speechPlaying = false; updateVoiceBtn(); };
+    speechSynthesis.speak(utter);
+  }
+  _speechPlaying = true;
+  updateVoiceBtn();
+}
+
+function stopNarration() {
+  speechSynthesis.cancel();
+  _speechPlaying = false;
+  updateVoiceBtn();
+}
+
+function setNarrationSpeed(rate) {
+  _speechRate = parseFloat(rate);
+}
+
+function updateVoiceBtn() {
+  const btn = document.getElementById('voiceBtn');
+  if (!btn) return;
+  if (_speechPlaying) {
+    btn.textContent = '⏹ Stop';
+    btn.classList.add('playing');
+  } else {
+    btn.textContent = '🔊 Narrate';
+    btn.classList.remove('playing');
+  }
+}
+
+// ── RSS FEED INGESTION ──────────────────────────────────────────────────────
+let rssFeeds = smLoad('lv_rss', []);
+
+function renderRSSChips() {
+  const el = document.getElementById('rssChips');
+  if (!el) return;
+  el.innerHTML = rssFeeds.map((f,i) => `<span class="rss-chip">${f.label || new URL(f.url).hostname}<span class="rss-x" onclick="removeRSSFeed(${i})">✕</span></span>`).join('');
+}
+
+async function addRSSFeed() {
+  const inp = document.getElementById('rssInput');
+  const url = inp.value.trim();
+  if (!url || !/^https?:\/\//i.test(url)) return;
+  if (rssFeeds.find(f => f.url === url)) return; // duplicate
+
+  const btn = inp.nextElementSibling;
+  btn.textContent = '⏳'; btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/rss', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+
+    const label = d.feedTitle || new URL(url).hostname;
+    rssFeeds.push({url, label});
+    smSave('lv_rss', rssFeeds);
+    inp.value = '';
+    renderRSSChips();
+
+    // Add RSS items to feed
+    if (d.items?.length) {
+      const customs = allNews.filter(n => n.id.startsWith('c') || n.id.startsWith('rss'));
+      const rssItems = d.items.map((item,i) => ({
+        id: 'rss' + Date.now() + i,
+        cat: item.category || 'RSS',
+        src: label,
+        hl: item.title,
+        rawUrl: item.link || ''
+      }));
+      allNews = [...customs, ...rssItems, ...allNews.filter(n => !n.id.startsWith('c') && !n.id.startsWith('rss'))];
+      renderFeed();
+    }
+  } catch(e) { console.warn('RSS add failed:', e); }
+
+  btn.textContent = 'Add'; btn.disabled = false;
+}
+
+function removeRSSFeed(idx) {
+  rssFeeds.splice(idx, 1);
+  smSave('lv_rss', rssFeeds);
+  renderRSSChips();
+}
+
+async function loadAllRSS() {
+  if (rssFeeds.length === 0) return [];
+  const allItems = [];
+  for (const feed of rssFeeds) {
+    try {
+      const r = await fetch('/api/rss', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url:feed.url}) });
+      const d = await r.json();
+      if (d.items) {
+        d.items.forEach((item,i) => allItems.push({
+          id: 'rss' + Date.now() + Math.random().toString(36).slice(2,6) + i,
+          cat: item.category || 'RSS',
+          src: feed.label || new URL(feed.url).hostname,
+          hl: item.title,
+          rawUrl: item.link || ''
+        }));
+      }
+    } catch(e) { console.warn('RSS load fail:', feed.url, e); }
+  }
+  return allItems;
+}
+
+// Override refreshFeed to include RSS items
+const _origRefreshFeed = refreshFeed;
+refreshFeed = async function() {
+  const btn = document.getElementById('rfbtn');
+  btn.textContent = '⏳ Fetching live news...';
+  btn.disabled = true;
+
+  const customs = allNews.filter(n => n.id.startsWith('c'));
+  const oldSel = new Set(sel);
+
+  const loadingItems = Array.from({length:6},(_,i)=>({id:'loading'+i, cat:'...', src:'...', hl:'Fetching latest news…'}));
+  allNews = [...customs, ...loadingItems];
+  renderFeed();
+
+  // Fetch RSS and Gemini in parallel
+  const [rssItems, liveNews] = await Promise.all([
+    loadAllRSS().catch(()=>[]),
+    fetchLiveNews(currentEdition).catch(()=>null)
+  ]);
+
+  if (liveNews && liveNews.length > 0) {
+    allNews = [...customs, ...rssItems, ...liveNews];
+  } else {
+    allNews = [...customs, ...rssItems, ...[...BASE_NEWS].sort(()=>Math.random()-.5)];
+  }
+
+  sel.clear();
+  renderFeed();
+  oldSel.forEach(id => { if (allNews.find(n=>n.id===id)) toggle(id); });
+  btn.textContent = '↻ Live Refresh';
+  btn.disabled = false;
+};
+
+// ── PWA SERVICE WORKER ──────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW registration failed:', err));
+}
+
+// ── INIT NEW FEATURES ───────────────────────────────────────────────────────
+renderTemplateGallery();
+renderRSSChips();
 </script>
 
 <!-- SHARE MODAL -->
