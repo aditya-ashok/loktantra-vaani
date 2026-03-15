@@ -15,6 +15,10 @@ body { background:#f0e8d8; min-height:100vh; font-family:'Source Sans 3',sans-se
 .left { background:#0d1117; border-right:3px solid var(--gold); display:flex; flex-direction:column; height:100vh; position:sticky; top:0; overflow-y:auto; }
 .left::-webkit-scrollbar { width:3px; }
 .left::-webkit-scrollbar-thumb { background:#1e293b; }
+.nav-tabs { display:flex; background:#060910; border-bottom:1px solid #1e293b; flex-shrink:0; }
+.nav-tabs a { flex:1; text-align:center; padding:8px 4px; color:#475569; font-size:10px; font-weight:700; text-decoration:none; letter-spacing:.5px; transition:all .15s; border-bottom:2px solid transparent; }
+.nav-tabs a:hover { color:#94a3b8; background:rgba(255,255,255,.02); }
+.nav-tabs a.active { color:#f59e0b; border-bottom-color:#f59e0b; background:rgba(245,158,11,.05); }
 .lhead { background:#090d14; padding:16px 18px 12px; border-bottom:2px solid #1e293b; flex-shrink:0; }
 .lhead h2 { font-family:'Playfair Display',serif; color:var(--gold); font-size:19px; margin-bottom:3px; }
 .lhead p { color:#475569; font-size:10px; letter-spacing:0.8px; text-transform:uppercase; }
@@ -157,6 +161,12 @@ textarea.cinput { resize:vertical; min-height:60px; }
 
 <!-- LEFT PANEL -->
 <div class="left">
+  <div class="nav-tabs">
+    <a href="/" title="Home">🏠</a>
+    <a href="/v21.html">📰 Classic</a>
+    <a href="/v24.html">🪷 Pro</a>
+    <a href="/column.html" class="active">✍ Column</a>
+  </div>
   <div class="lhead">
     <h2>✍ Column Writer</h2>
     <p>Write · Style · Publish</p>
