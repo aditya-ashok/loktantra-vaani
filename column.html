@@ -1133,8 +1133,8 @@ async function shareWhatsApp() {
 
   // Capture all pages as separate images
   const bg = paperTheme === 'white' ? '#ffffff' : '#f5f0e6';
+  const files = [];
   try {
-    const files = [];
     for (let i = 0; i < total; i++) {
       const canvas = await html2canvas(pages[i], {scale:2, useCORS:true, backgroundColor: bg});
       const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
@@ -1143,13 +1143,44 @@ async function shareWhatsApp() {
         : `loktantra-vaani-column-${i+1}of${total}.png`;
       files.push(new File([blob], fname, {type:'image/png'}));
     }
-    if (navigator.canShare && navigator.canShare({files})) {
-      await navigator.share({text: msg, files});
-      return;
-    }
-  } catch(e) { console.warn('Web Share failed:', e); }
+  } catch(e) { console.warn('Image capture failed:', e); }
 
-  // Fallback: open WhatsApp with text
+  // Try 1: Share all files together
+  if (files.length > 0 && navigator.canShare) {
+    try {
+      if (navigator.canShare({files})) {
+        await navigator.share({text: msg, files});
+        return;
+      }
+    } catch(e) { console.warn('Multi-file share failed:', e); }
+
+    // Try 2: Share one file at a time (some devices only support single file)
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const pageMsg = total === 1 ? msg : msg + `\n\n📄 Page ${i+1}/${total}`;
+        if (navigator.canShare({files:[files[i]]})) {
+          await navigator.share({text: pageMsg, files:[files[i]]});
+          continue;
+        }
+      } catch(e) { console.warn(`Page ${i+1} share failed:`, e); break; }
+    }
+    return;
+  }
+
+  // Fallback: download images + open WhatsApp with text
+  if (files.length > 0) {
+    for (let i = 0; i < files.length; i++) {
+      const a = document.createElement('a');
+      a.download = files[i].name;
+      a.href = URL.createObjectURL(files[i]);
+      a.click();
+      URL.revokeObjectURL(a.href);
+      if (files.length > 1) await new Promise(r => setTimeout(r, 400));
+    }
+    alert(lang === 'hi'
+      ? `${files.length} चित्र डाउनलोड हो गए। WhatsApp खुल रहा है — कृपया चित्र अटैच करें।`
+      : `${files.length} image(s) downloaded. Opening WhatsApp — please attach the images.`);
+  }
   const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
 }
