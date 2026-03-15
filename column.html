@@ -952,7 +952,7 @@ function renderColumn() {
   if (!columnData) return;
   const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
   const sectionLabel = {opinion:'OPINION',editorial:'EDITORIAL',analysis:'ANALYSIS'}[section];
-  const isHindi = lang === 'hi';
+  const isHindi = lang === 'hi' || lang === 'bi';
 
   // Author photo HTML
   let authorImgHTML;
@@ -991,9 +991,9 @@ function renderColumn() {
 
   const layoutClass = isHindi ? 'hindi-layout' : '';
 
-  // Build pages — adjust paragraphs per page based on article length
-  // Medium (1500w) = 1 page, Long (2000w) = 2 pages, XLong (3000w) = 3-4 pages
-  const PARAS_PER_PAGE = articleLength === 'xlong' ? 6 : articleLength === 'long' ? 8 : 20;
+  // Build pages — 1500w fits in 1 page, scale up from there
+  // Medium (9 paras) = 1 page, Long (14 paras) = 2 pages, XLong (19 paras) = 2 pages
+  const PARAS_PER_PAGE = articleLength === 'xlong' ? 10 : articleLength === 'long' ? 9 : 20;
   const totalParas = paras.length;
   const pageCount = Math.max(1, Math.ceil(totalParas / PARAS_PER_PAGE));
 
