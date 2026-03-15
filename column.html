@@ -59,7 +59,7 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .right { padding:28px 24px; display:flex; flex-direction:column; align-items:center; gap:18px; overflow-y:auto; }
 
 /* ── NEWSPAPER COLUMN ── */
-.col-np { width:100%; max-width:960px; background:var(--cream); border:2px solid var(--dark); box-shadow:0 0 0 4px var(--cream),0 0 0 6px var(--dark),0 16px 48px rgba(0,0,0,.35); position:relative; display:flex; flex-direction:column; }
+.col-np { width:100%; max-width:960px; aspect-ratio:16/9; background:var(--cream); border:2px solid var(--dark); box-shadow:0 0 0 4px var(--cream),0 0 0 6px var(--dark),0 16px 48px rgba(0,0,0,.35); position:relative; display:flex; flex-direction:column; overflow:hidden; }
 .col-mast { background:var(--cream); text-align:center; padding:10px 10px 8px; border-bottom:3px double var(--dark); flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:8px; }
 .col-mast svg.mast-logo { width:36px; height:36px; flex-shrink:0; }
 .col-mast h1 { font-size:clamp(20px,3.5vw,32px); font-weight:900; color:var(--dark); line-height:1; letter-spacing:-1px; font-family:'Noto Sans Devanagari','Mangal',sans-serif; }
@@ -112,6 +112,17 @@ textarea.cinput { resize:vertical; min-height:60px; }
 /* Sidebar continuation text */
 .col-sidebar-text { font-family:'Lora','Noto Sans Devanagari',Georgia,serif; font-size:8.5px; line-height:1.55; color:var(--text); text-align:justify; hyphens:auto; }
 .col-sidebar-text p { margin-bottom:4px; text-indent:.8em; }
+
+/* About Author box */
+.col-about-author { border-top:1.5px solid var(--dark); padding:5px 10px; background:rgba(245,158,11,.04); flex-shrink:0; }
+.col-about-author .about-label { font-family:'Source Sans 3',sans-serif; font-size:7px; color:var(--brown); text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:2px; }
+.col-about-author .about-content { display:flex; align-items:flex-start; gap:8px; }
+.col-about-author .about-img { width:30px; height:30px; border-radius:50%; border:1.5px solid var(--dark); object-fit:cover; flex-shrink:0; }
+.col-about-author .about-img.initials-sm { display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:10px; font-weight:900; color:var(--dark); background:#d4c9b4; }
+.col-about-author .about-text { flex:1; }
+.col-about-author .about-name { font-family:'Playfair Display',serif; font-size:8px; font-weight:900; color:var(--dark); }
+.col-about-author .about-desig { font-family:'Source Sans 3',sans-serif; font-size:6.5px; color:var(--brown); font-weight:600; }
+.col-about-author .about-bio { font-family:'Lora','Noto Sans Devanagari',Georgia,serif; font-size:6.5px; color:var(--text); line-height:1.4; margin-top:1px; }
 
 /* Footer */
 .col-foot { display:grid; grid-template-columns:1fr 1fr 1fr; border-top:1.5px solid var(--dark); flex-shrink:0; }
@@ -194,7 +205,7 @@ textarea.cinput { resize:vertical; min-height:60px; }
   .app { grid-template-columns:1fr; }
   .left { height:auto; position:static; border-right:none; border-bottom:3px solid var(--gold); }
   .right { padding:12px 8px; }
-  .col-np { aspect-ratio:auto; box-shadow:0 0 0 3px var(--cream),0 0 0 5px var(--dark),0 8px 24px rgba(0,0,0,.3); }
+  .col-np { aspect-ratio:16/9; box-shadow:0 0 0 3px var(--cream),0 0 0 5px var(--dark),0 8px 24px rgba(0,0,0,.3); }
   .col-content { grid-template-columns:1fr !important; }
   .col-main { grid-column:1; border-right:none; border-bottom:1px solid #c4b89a; }
   .col-sidebar { grid-column:1; }
@@ -251,8 +262,14 @@ textarea.cinput { resize:vertical; min-height:60px; }
   <!-- Author -->
   <div class="sec">
     <div class="slabel">Author Details</div>
+    <div class="row2" style="margin-bottom:8px;gap:4px;flex-wrap:wrap">
+      <button class="pvbtn" style="flex:1;font-size:9px;padding:5px 4px" onclick="selectAuthorPreset('ashok')">👤 Ashok K.C.</button>
+      <button class="pvbtn" style="flex:1;font-size:9px;padding:5px 4px" onclick="selectAuthorPreset('aditya')">👤 Aditya A.</button>
+      <button class="pvbtn" style="flex:0 0 auto;font-size:9px;padding:5px 8px" onclick="selectAuthorPreset('custom')">✏ Custom</button>
+    </div>
     <input class="cinput" type="text" id="authorName" placeholder="Author name (e.g., Rajesh Sharma)" style="margin-bottom:6px" />
     <input class="cinput" type="text" id="authorDesig" placeholder="Designation (e.g., Senior Political Analyst)" style="margin-bottom:6px" />
+    <textarea class="cinput" id="authorAbout" placeholder="About the author (short bio)..." style="min-height:40px;font-size:11px"></textarea>
     <div class="author-row">
       <div class="author-photo-preview" id="authorPreview">
         <span class="initials" id="authorInitials">?</span>
@@ -295,6 +312,16 @@ textarea.cinput { resize:vertical; min-height:60px; }
       <button class="langbtn" id="tone-probjp" onclick="setTone('probjp')">🪷 Pro-BJP</button>
       <button class="langbtn" id="tone-neutral" onclick="setTone('neutral')">⚖ Neutral</button>
       <button class="langbtn" id="tone-antigov" onclick="setTone('antigov')">🔍 Anti-Govt</button>
+    </div>
+  </div>
+
+  <!-- Article Length -->
+  <div class="sec" style="padding:8px 16px">
+    <div class="slabel">Article Length</div>
+    <div class="row2" style="gap:4px">
+      <button class="langbtn on" id="len-medium" onclick="setLength('medium')">📝 1000w</button>
+      <button class="langbtn" id="len-long" onclick="setLength('long')">📄 2000w</button>
+      <button class="langbtn" id="len-xlong" onclick="setLength('xlong')">📰 3000w</button>
     </div>
   </div>
 
@@ -345,7 +372,7 @@ textarea.cinput { resize:vertical; min-height:60px; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let prov = 'gemini', apiKey = '', lang = 'en', section = 'opinion', tone = 'nationalist';
+let prov = 'gemini', apiKey = '', lang = 'en', section = 'opinion', tone = 'nationalist', articleLength = 'medium';
 const USE_PROXY = true;
 let _serverKey = '';
 let _hasOpenAI = false;
@@ -353,6 +380,26 @@ let authorPhoto = null; // base64
 let columnData = null;  // generated column content
 let heroImg = null;     // generated hero image
 let articlePhotos = [];  // user-uploaded article photos (base64)
+let authorAbout = '';    // author bio text
+
+const AUTHOR_PRESETS = {
+  ashok: {
+    name: 'Ashok Kumar Choudhary',
+    desig: 'Former Chairman, Regional Advisory Committee, Dattopant Thengadi National Board for Workers Education & Development',
+    about: 'Formerly Vice President of Bharatiya Mazdoor Sangh Bihar. Retired Sr Banker.',
+    nameHi: 'अशोक कुमार चौधरी',
+    desigHi: 'पूर्व अध्यक्ष, क्षेत्रीय सलाहकार समिति, दत्तोपंत ठेंगड़ी राष्ट्रीय श्रमिक शिक्षा एवं विकास बोर्ड',
+    aboutHi: 'भारतीय मज़दूर संघ बिहार के पूर्व उपाध्यक्ष। सेवानिवृत्त वरिष्ठ बैंकर।'
+  },
+  aditya: {
+    name: 'Aditya Ashok',
+    desig: 'Public Policy Consultant',
+    about: 'IIM Mumbai, IIIT Bangalore & Manipal CSE. 10 years of experience in MNC and government advisory.',
+    nameHi: 'आदित्य अशोक',
+    desigHi: 'लोक नीति सलाहकार',
+    aboutHi: 'IIM मुंबई, IIIT बेंगलुरु और मणिपाल CSE। MNC और सरकारी सलाहकार में 10 वर्षों का अनुभव।'
+  }
+};
 
 // Fetch server keys
 fetch('/api/key').then(r=>r.json()).then(d=>{
@@ -454,6 +501,11 @@ function setTone(t) {
   ['nationalist','probjp','neutral','antigov'].forEach(x => document.getElementById('tone-'+x).classList.toggle('on', x===t));
 }
 
+function setLength(l) {
+  articleLength = l;
+  ['medium','long','xlong'].forEach(x => document.getElementById('len-'+x).classList.toggle('on', x===l));
+}
+
 let paperTheme = 'classic';
 function setTheme(t) {
   paperTheme = t;
@@ -473,6 +525,25 @@ function detectXLink(url) {
     document.getElementById('sourceTopic').placeholder = 'Or type topic / headline / talking points...\ne.g., India\'s foreign policy shift in 2026';
     document.getElementById('sourceTopic').style.borderColor = '';
   }
+}
+
+// ── AUTHOR PRESETS ───────────────────────────────────────────────────────────
+function selectAuthorPreset(key) {
+  if (key === 'custom') {
+    document.getElementById('authorName').value = '';
+    document.getElementById('authorDesig').value = '';
+    document.getElementById('authorAbout').value = '';
+    authorAbout = '';
+    document.getElementById('authorName').focus();
+    return;
+  }
+  const p = AUTHOR_PRESETS[key];
+  if (!p) return;
+  const isHi = lang === 'hi';
+  document.getElementById('authorName').value = isHi ? p.nameHi : p.name;
+  document.getElementById('authorDesig').value = isHi ? p.desigHi : p.desig;
+  document.getElementById('authorAbout').value = isHi ? p.aboutHi : p.about;
+  authorAbout = isHi ? p.aboutHi : p.about;
 }
 
 // ── AUTHOR PHOTO ─────────────────────────────────────────────────────────────
@@ -535,6 +606,7 @@ async function generateAuthorPhoto() {
 async function generateColumn() {
   const authorName = document.getElementById('authorName').value.trim();
   const authorDesig = document.getElementById('authorDesig').value.trim();
+  authorAbout = document.getElementById('authorAbout').value.trim();
   const sourceUrl = document.getElementById('sourceUrl').value.trim();
   const sourceTopic = document.getElementById('sourceTopic').value.trim();
 
@@ -567,10 +639,11 @@ async function generateColumn() {
     // Auto-translate author to Hindi if language is Hindi
     if (lang === 'hi') {
       try {
-        const hiPrompt = `Transliterate/translate to Hindi (Devanagari). For names, transliterate phonetically. For titles, use Hindi equivalent.
-Return ONLY JSON: {"name":"hindi","desig":"hindi"}
+        const hiPrompt = `Transliterate/translate to Hindi (Devanagari). For names, transliterate phonetically. For titles/bio, use Hindi equivalent.
+Return ONLY JSON: {"name":"hindi","desig":"hindi","about":"hindi"}
 Name: ${columnData.authorName}
-Designation: ${columnData.authorDesig}`;
+Designation: ${columnData.authorDesig}
+About: ${authorAbout || 'N/A'}`;
         let hiTxt = '';
         if (prov === 'openai') {
           const {data: d} = await openaiProxy('https://api.openai.com/v1/chat/completions',
@@ -588,8 +661,10 @@ Designation: ${columnData.authorDesig}`;
         const hiParsed = JSON.parse(hiMatch ? hiMatch[0] : hiTxt);
         if (hiParsed.name) columnData.authorName = hiParsed.name;
         if (hiParsed.desig) columnData.authorDesig = hiParsed.desig;
+        if (hiParsed.about && authorAbout) authorAbout = hiParsed.about;
         document.getElementById('authorName').value = columnData.authorName;
         document.getElementById('authorDesig').value = columnData.authorDesig;
+        document.getElementById('authorAbout').value = authorAbout;
       } catch(e) { console.warn('Hindi author translation skipped:', e); }
     }
 
@@ -682,6 +757,63 @@ In the JSON response, you MUST include:
     antigov: `EDITORIAL TONE: Critical of the ruling government. Hold power to account. Highlight governance failures, broken promises, economic challenges (unemployment, inflation, inequality), press freedom concerns, institutional erosion. Use sharp, questioning language. Reference RTI data, parliamentary disruptions, GDP concerns, farmer distress where relevant. Think opposition editorial — constructive criticism, not mudslinging. Demand accountability and transparency.`
   }[tone];
 
+  const lengthConfig = {
+    medium: {
+      wordRange: '800-1200 words',
+      paraGuide: `    "Opening paragraph — hook with striking fact or observation (80-120 words)",
+    "Context paragraph — background and key developments (80-120 words)",
+    "Core argument / analysis paragraph (80-120 words)",
+    "Evidence and examples — data, quotes to support (80-120 words)",
+    "Deeper analysis — implications and connections (80-120 words)",
+    "Broader perspective or counterpoint (60-100 words)",
+    "Historical context or comparison (60-100 words)",
+    "Expert opinion or policy angle (60-80 words)",
+    "Conclusion — forward-looking, call to action (60-80 words)"`,
+      maxTokens: 2000
+    },
+    long: {
+      wordRange: '1800-2200 words',
+      paraGuide: `    "Opening paragraph — powerful hook with striking fact (120-150 words)",
+    "Context and background — set the stage (120-150 words)",
+    "Historical context — how we got here (120-150 words)",
+    "Core argument part 1 — first major point (120-150 words)",
+    "Core argument part 2 — second major point (120-150 words)",
+    "Evidence and data — statistics, studies, expert quotes (120-150 words)",
+    "Counterpoint — acknowledge other perspectives (100-130 words)",
+    "Deeper analysis — implications and connections (120-150 words)",
+    "International comparison — global perspective (100-130 words)",
+    "Policy angle — what should be done (100-130 words)",
+    "Expert opinion — quotes and analysis (100-120 words)",
+    "Broader perspective — societal impact (100-120 words)",
+    "Future outlook — what lies ahead (80-100 words)",
+    "Conclusion — call to action, final thought (80-100 words)"`,
+      maxTokens: 4000
+    },
+    xlong: {
+      wordRange: '2800-3200 words',
+      paraGuide: `    "Opening paragraph — dramatic hook with striking fact or scene (150-180 words)",
+    "Scene setting — vivid context and background (150-180 words)",
+    "Historical roots — deep historical context (150-180 words)",
+    "The turning point — what changed and when (120-150 words)",
+    "Core argument part 1 — first pillar of analysis (150-180 words)",
+    "Core argument part 2 — second pillar with evidence (150-180 words)",
+    "Core argument part 3 — third pillar with data (150-180 words)",
+    "The human angle — real stories and impact (120-150 words)",
+    "Counterpoint 1 — opposing view fairly presented (120-150 words)",
+    "Counterpoint 2 — another perspective (100-130 words)",
+    "Expert voices — quotes from multiple authorities (120-150 words)",
+    "International comparison — lessons from abroad (120-150 words)",
+    "Economic impact — financial and economic dimensions (120-150 words)",
+    "Social fabric — cultural and societal implications (120-150 words)",
+    "Policy deep dive — detailed policy analysis (120-150 words)",
+    "The road ahead — future scenarios (100-130 words)",
+    "What must change — concrete recommendations (100-130 words)",
+    "Broader vision — the bigger picture (100-120 words)",
+    "Conclusion — powerful closing, call to action (100-120 words)"`,
+      maxTokens: 6000
+    }
+  }[articleLength];
+
   const prompt = `You are a senior newspaper columnist writing for "लोकतंत्र वाणी", a prestigious Indian newspaper.
 
 ${langInst}
@@ -692,22 +824,14 @@ ${sectionStyle}
 ${toneInst}
 ${sourceContext}
 
-Write a compelling newspaper ${sectionName.toLowerCase()} column (800-1200 words). The writing must feel like a REAL printed newspaper — authoritative, incisive, polished. Write LONG, substantial paragraphs.
+Write a compelling newspaper ${sectionName.toLowerCase()} column (${lengthConfig.wordRange}). The writing must feel like a REAL printed newspaper — authoritative, incisive, polished. Write LONG, substantial paragraphs.
 
 Return ONLY valid JSON (no markdown, no extra text):
 {
   "headline": "powerful attention-grabbing headline, max 10 words, newspaper style ALL CAPS feel",
   "subheadline": "one-line context subtitle, 10-15 words",
   "paragraphs": [
-    "Opening paragraph — hook with striking fact or observation (80-120 words)",
-    "Context paragraph — background and key developments (80-120 words)",
-    "Core argument / analysis paragraph (80-120 words)",
-    "Evidence and examples — data, quotes to support (80-120 words)",
-    "Deeper analysis — implications and connections (80-120 words)",
-    "Broader perspective or counterpoint (60-100 words)",
-    "Historical context or comparison (60-100 words)",
-    "Expert opinion or policy angle (60-80 words)",
-    "Conclusion — forward-looking, call to action (60-80 words)"
+${lengthConfig.paraGuide}
   ],
   "pullQuote": "one powerful sentence that deserves to stand out, max 20 words",
   "imagePrompt": "vivid editorial illustration description — symbolic, dramatic lighting, Indian context",
@@ -718,17 +842,18 @@ Return ONLY valid JSON (no markdown, no extra text):
 
   let txt = '';
   if (prov === 'gemini') {
-    const d = await geminiProxy('gemini-2.0-flash', {
+    const gemModel = articleLength === 'xlong' ? 'gemini-2.5-flash-preview-05-20' : 'gemini-2.0-flash';
+    const d = await geminiProxy(gemModel, {
       contents:[{parts:[{text:prompt}]}],
       tools:[{google_search:{}}],
-      generationConfig:{temperature:0.6}
+      generationConfig:{temperature:0.6, maxOutputTokens: lengthConfig.maxTokens}
     });
     console.log('Column Gemini response:', JSON.stringify(d).slice(0,500));
     if (d?.error) throw new Error(d.error.message || 'Gemini API error');
     txt = (d?.candidates?.[0]?.content?.parts || []).filter(p=>p.text).map(p=>p.text).join('\n');
   } else {
     const {data: d} = await openaiProxy('https://api.openai.com/v1/chat/completions',
-      {model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:2000});
+      {model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:lengthConfig.maxTokens});
     if (d?.error) throw new Error(d.error.message || 'OpenAI API error');
     txt = d?.choices?.[0]?.message?.content || '';
   }
@@ -866,6 +991,29 @@ function renderColumn() {
             </div>
           </div>` : `<div style="font-family:'Source Sans 3',sans-serif;font-size:7px;color:var(--brown);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">CONTINUED</div>`;
 
+    // About Author box — only on last page
+    let aboutHTML = '';
+    if (pg === pageCount - 1 && authorAbout) {
+      let aboutImgHTML;
+      if (authorPhoto) {
+        aboutImgHTML = `<img class="about-img" src="${authorPhoto}" alt="${columnData.authorName}"/>`;
+      } else {
+        const ini = columnData.authorName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        aboutImgHTML = `<div class="about-img initials-sm">${ini}</div>`;
+      }
+      aboutHTML = `<div class="col-about-author">
+        <div class="about-label">About The Author</div>
+        <div class="about-content">
+          ${aboutImgHTML}
+          <div class="about-text">
+            <div class="about-name">${columnData.authorName}</div>
+            <div class="about-desig">${columnData.authorDesig}</div>
+            <div class="about-bio">${authorAbout}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
     const footerHTML = `<div class="col-foot">
         <div class="fc br">✉ enquiry@kautilya.world</div>
         <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
@@ -891,6 +1039,7 @@ function renderColumn() {
           </div>
         </div>
       </div>
+      ${aboutHTML}
       ${footerHTML}
     </div>`;
   }
@@ -915,6 +1064,9 @@ function renderColumn() {
         </div>
         <div class="irow" style="margin-bottom:6px;">
           <input type="text" id="editAuthorDesig" placeholder="Designation" value="${columnData.authorDesig||''}" style="flex:1;background:#090d14;border:1.5px solid #1e293b;border-radius:5px;padding:7px 10px;color:#e2e8f0;font-size:12px;outline:none;font-family:'Source Sans 3',sans-serif;"/>
+        </div>
+        <div class="irow" style="margin-bottom:6px;">
+          <textarea id="editAuthorAbout" placeholder="About the author..." style="flex:1;background:#090d14;border:1.5px solid #1e293b;border-radius:5px;padding:7px 10px;color:#e2e8f0;font-size:11px;outline:none;font-family:'Source Sans 3',sans-serif;min-height:36px;resize:vertical;">${authorAbout||''}</textarea>
         </div>
         <div class="irow" style="gap:6px;">
           <button class="eb-btn" onclick="applyAuthorEdit()" style="flex:1;">✅ Apply</button>
@@ -1011,27 +1163,37 @@ function toggleAuthorEdit() {
 function applyAuthorEdit() {
   const newName = document.getElementById('editAuthorName').value.trim();
   const newDesig = document.getElementById('editAuthorDesig').value.trim();
+  const newAbout = document.getElementById('editAuthorAbout').value.trim();
   if (!newName) { alert('Author name cannot be empty.'); return; }
   columnData.authorName = newName;
   columnData.authorDesig = newDesig || columnData.authorDesig;
+  authorAbout = newAbout;
   // Update left panel inputs too
   document.getElementById('authorName').value = newName;
   document.getElementById('authorDesig').value = newDesig;
+  document.getElementById('authorAbout').value = newAbout;
   // Update rendered name/desig in all pages
   document.querySelectorAll('.col-author-name').forEach(el => el.textContent = newName);
   document.querySelectorAll('.col-author-desig').forEach(el => el.textContent = columnData.authorDesig);
+  // Update About Author box
+  document.querySelectorAll('.about-name').forEach(el => el.textContent = newName);
+  document.querySelectorAll('.about-desig').forEach(el => el.textContent = columnData.authorDesig);
+  document.querySelectorAll('.about-bio').forEach(el => el.textContent = authorAbout);
   // Update initials if no photo
   if (!authorPhoto) {
     const initials = newName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
     document.querySelectorAll('.col-author-img.initials-circle').forEach(el => el.textContent = initials);
+    document.querySelectorAll('.about-img.initials-sm').forEach(el => el.textContent = initials);
   }
 }
 
 async function translateAuthorHindi() {
   const nameEl = document.getElementById('editAuthorName');
   const desigEl = document.getElementById('editAuthorDesig');
+  const aboutEl = document.getElementById('editAuthorAbout');
   const name = nameEl.value.trim();
   const desig = desigEl.value.trim();
+  const about = aboutEl ? aboutEl.value.trim() : '';
   if (!name) { alert('Enter author name first.'); return; }
 
   const btn = document.querySelector('#authorEditPanel .irow:last-child button:last-child');
@@ -1040,15 +1202,16 @@ async function translateAuthorHindi() {
   btn.disabled = true;
 
   try {
-    const prompt = `Transliterate/translate the following to Hindi (Devanagari script). For proper names, transliterate phonetically. For designations/titles, translate to Hindi equivalent.
-Return ONLY a JSON object: {"name":"hindi name","desig":"hindi designation"}
+    const prompt = `Transliterate/translate the following to Hindi (Devanagari script). For proper names, transliterate phonetically. For designations/titles/bio, translate to Hindi equivalent.
+Return ONLY a JSON object: {"name":"hindi name","desig":"hindi designation","about":"hindi about"}
 Name: ${name}
-Designation: ${desig || 'Columnist'}`;
+Designation: ${desig || 'Columnist'}
+About: ${about || 'N/A'}`;
 
     let txt = '';
     if (prov === 'openai') {
       const {data: d} = await openaiProxy('https://api.openai.com/v1/chat/completions',
-        {model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:200});
+        {model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:300});
       txt = d?.choices?.[0]?.message?.content || '';
     } else {
       const d = await geminiProxy('gemini-2.0-flash', {
@@ -1062,6 +1225,7 @@ Designation: ${desig || 'Columnist'}`;
     const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : txt);
     nameEl.value = parsed.name || name;
     desigEl.value = parsed.desig || desig;
+    if (aboutEl && parsed.about && about) aboutEl.value = parsed.about;
   } catch(e) {
     console.warn('Hindi translation failed:', e);
     alert('Translation failed. Please type Hindi manually.');
