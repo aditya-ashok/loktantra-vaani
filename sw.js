@@ -1,6 +1,7 @@
-const CACHE_NAME = 'lv-v24-cache-v1';
+const CACHE_NAME = 'lv-v24-cache-v2';
 const STATIC_ASSETS = [
   '/v24.html',
+  '/column.html',
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
@@ -24,15 +25,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-first for API calls (need fresh data)
-  if (url.pathname.startsWith('/api/')) {
+  // Network-first for API calls and HTML pages (need fresh data)
+  if (url.pathname.startsWith('/api/') || url.pathname.endsWith('.html') || url.pathname === '/') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request).then(response => {
+        if (response.ok && event.request.method === 'GET') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Cache-first for static assets
+  // Cache-first for static assets (JS libs, icons, manifest)
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

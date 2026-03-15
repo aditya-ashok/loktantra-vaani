@@ -2028,16 +2028,23 @@ refreshFeed = async function() {
   allNews = [...customs, ...loadingItems];
   renderFeed();
 
-  // Fetch RSS and Gemini in parallel
-  const [rssItems, liveNews] = await Promise.all([
-    loadAllRSS().catch(()=>[]),
-    fetchLiveNews(currentEdition).catch(()=>null)
-  ]);
+  try {
+    // Fetch RSS and Gemini in parallel
+    const [rssItems, liveNews] = await Promise.all([
+      loadAllRSS().catch(()=>[]),
+      fetchLiveNews(currentEdition).catch(e => { console.warn('Live fetch failed:', e.message); return null; })
+    ]);
 
-  if (liveNews && liveNews.length > 0) {
-    allNews = [...customs, ...rssItems, ...liveNews];
-  } else {
-    allNews = [...customs, ...rssItems, ...[...BASE_NEWS].sort(()=>Math.random()-.5)];
+    if (liveNews && liveNews.length > 0) {
+      console.log('Live news loaded:', liveNews.length, 'items');
+      allNews = [...customs, ...rssItems, ...liveNews];
+    } else {
+      console.warn('Using fallback BASE_NEWS');
+      allNews = [...customs, ...rssItems, ...[...BASE_NEWS].sort(()=>Math.random()-.5)];
+    }
+  } catch(e) {
+    console.error('refreshFeed error:', e);
+    allNews = [...customs, ...[...BASE_NEWS].sort(()=>Math.random()-.5)];
   }
 
   sel.clear();
