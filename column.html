@@ -992,7 +992,7 @@ function renderColumn() {
               <span class="col-author-name">${columnData.authorName}</span>
               <span class="col-author-desig">${columnData.authorDesig}</span>
             </div>
-          </div>` : `<div style="font-family:'Source Sans 3',sans-serif;font-size:7px;color:var(--brown);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">CONTINUED</div>`;
+          </div>` : `<div style="font-family:'Source Sans 3','Noto Sans Devanagari',sans-serif;font-size:7px;color:var(--brown);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">${isHindi ? 'जारी...' : 'CONTINUED'}</div>`;
 
     // About Author box — only on last page
     let aboutHTML = '';
@@ -1005,7 +1005,7 @@ function renderColumn() {
         aboutImgHTML = `<div class="about-img initials-sm">${ini}</div>`;
       }
       aboutHTML = `<div class="col-about-author">
-        <div class="about-label">About The Author</div>
+        <div class="about-label">${isHindi ? 'लेखक के बारे में' : 'About The Author'}</div>
         <div class="about-content">
           ${aboutImgHTML}
           <div class="about-text">
