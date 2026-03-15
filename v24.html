@@ -1154,8 +1154,8 @@ Exactly 12 items.`;
   // Try multiple JSON extraction strategies
   let arr = null;
 
-  // Strategy 1: find JSON array directly
-  const m1 = txt.match(/\[\s*\{[\s\S]*?\}\s*\]/);
+  // Strategy 1: find JSON array directly (greedy to capture full array)
+  const m1 = txt.match(/\[\s*\{[\s\S]*\}\s*\]/);
   if (m1) { try { arr = JSON.parse(m1[0]); } catch(e) { console.warn('parse1 fail', e); } }
 
   // Strategy 2: find array wrapped in code block
