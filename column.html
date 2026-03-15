@@ -209,7 +209,8 @@ textarea.cinput { resize:vertical; min-height:60px; }
   <!-- Content Source -->
   <div class="sec">
     <div class="slabel">Content Source</div>
-    <input class="cinput" type="url" id="sourceUrl" placeholder="Paste article URL (optional)" style="margin-bottom:6px" />
+    <input class="cinput" type="url" id="sourceUrl" placeholder="Paste article URL or X/Twitter post link" style="margin-bottom:6px" oninput="detectXLink(this.value)" />
+    <div id="xDetected" style="display:none;color:#1d9bf0;font-size:10px;margin:-2px 0 4px;font-weight:700">𝕏 Post detected — author & content will be extracted automatically</div>
     <textarea class="cinput" id="sourceTopic" placeholder="Or type topic / headline / talking points...&#10;e.g., India's foreign policy shift in 2026"></textarea>
   </div>
 
@@ -369,6 +370,11 @@ function setTone(t) {
   ['nationalist','probjp','neutral','antigov'].forEach(x => document.getElementById('tone-'+x).classList.toggle('on', x===t));
 }
 
+function detectXLink(url) {
+  const isX = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test(url.trim());
+  document.getElementById('xDetected').style.display = isX ? 'block' : 'none';
+}
+
 // ── AUTHOR PHOTO ─────────────────────────────────────────────────────────────
 function handlePhotoUpload(e) {
   const file = e.target.files[0];
@@ -404,7 +410,8 @@ async function generateColumn() {
   const sourceUrl = document.getElementById('sourceUrl').value.trim();
   const sourceTopic = document.getElementById('sourceTopic').value.trim();
 
-  if (!authorName) { alert('Please enter an author name.'); return; }
+  const isXUrl = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test((sourceUrl||'').trim());
+  if (!authorName && !isXUrl) { alert('Please enter an author name.'); return; }
   if (!sourceUrl && !sourceTopic) { alert('Please enter a URL or topic.'); return; }
   if (!apiKey && !USE_PROXY) { alert('Please add an API key.'); return; }
 
@@ -416,8 +423,18 @@ async function generateColumn() {
   try {
     // Step 1: Generate column text
     columnData = await getColumnContent(sourceUrl, sourceTopic);
-    columnData.authorName = authorName;
-    columnData.authorDesig = authorDesig || section.charAt(0).toUpperCase() + section.slice(1) + ' Writer';
+    // If X post detected and AI returned author info, use it
+    const isXPost = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test((sourceUrl||'').trim());
+    if (isXPost && columnData.xAuthorName) {
+      columnData.authorName = columnData.xAuthorName;
+      columnData.authorDesig = columnData.xAuthorDesig || 'X (Twitter)';
+      // Update the input fields too
+      document.getElementById('authorName').value = columnData.authorName;
+      document.getElementById('authorDesig').value = columnData.authorDesig;
+    } else {
+      columnData.authorName = authorName;
+      columnData.authorDesig = authorDesig || section.charAt(0).toUpperCase() + section.slice(1) + ' Writer';
+    }
 
     // Render with placeholder image
     heroImg = null;
@@ -454,8 +471,22 @@ async function getColumnContent(sourceUrl, sourceTopic) {
 
   const sectionName = {opinion:'Opinion',editorial:'Editorial',analysis:'Analysis'}[section];
 
+  const isXPost = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test((sourceUrl||'').trim());
+
   let sourceContext = '';
-  if (sourceUrl) {
+  if (isXPost) {
+    sourceContext = `\n\nSOURCE: X (Twitter) post URL: ${sourceUrl}
+Use Google Search to find and read this X/Twitter post. Extract:
+1. The author's name and handle (e.g., @naaboramodi → Narendra Modi)
+2. The full text/content of the post (including any quoted text or thread)
+3. If it contains a video, describe what the video is about based on replies/context
+
+IMPORTANT: Write the column AS IF written by that X account's person. Use their name as the author. Base the column entirely on the content/stance expressed in that post. If the person is a politician, use their real designation (e.g., "Prime Minister of India", "Member of Parliament"). If unknown, use "Public Commentator".
+
+In the JSON response, also include:
+"xAuthorName": "real name of the X account owner",
+"xAuthorDesig": "their designation/title"`;
+  } else if (sourceUrl) {
     sourceContext = `\n\nSource article URL: ${sourceUrl}\nRead this article thoroughly using the URL and base your column on its content, facts, and developments. Add your own analysis and perspective.`;
   }
   if (sourceTopic) {
