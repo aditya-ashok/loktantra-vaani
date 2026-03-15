@@ -16,38 +16,38 @@ body {
   justify-content: center;
   font-family: 'Source Sans 3', sans-serif;
   color: #e2e8f0;
-  padding: 20px;
+  padding: 16px;
 }
 .header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 28px;
 }
 .header h1 {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(36px, 6vw, 56px);
+  font-size: clamp(28px, 6vw, 48px);
   color: #f59e0b;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   text-shadow: 0 4px 20px rgba(245,158,11,.3);
 }
 .header p {
   color: #64748b;
-  font-size: 14px;
+  font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
 .cards {
   display: flex;
-  gap: 32px;
+  gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 1260px;
+  max-width: 960px;
 }
 .card {
   background: #0f172a;
-  border: 2px solid #1e293b;
-  border-radius: 16px;
-  padding: 36px 32px;
-  width: 380px;
+  border: 1.5px solid #1e293b;
+  border-radius: 12px;
+  padding: 20px 18px;
+  width: 280px;
   text-decoration: none;
   color: inherit;
   transition: all .25s ease;
@@ -57,65 +57,64 @@ body {
 }
 .card:hover {
   border-color: #f59e0b;
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(245,158,11,.15);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(245,158,11,.15);
 }
 .card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, #f59e0b, #d97706);
   opacity: 0;
   transition: opacity .25s;
 }
 .card:hover::before { opacity: 1; }
 .card-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 32px;
+  margin-bottom: 8px;
 }
 .card h2 {
   font-family: 'Playfair Display', serif;
-  font-size: 22px;
+  font-size: 18px;
   color: #f59e0b;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 .card .version {
   display: inline-block;
   background: rgba(245,158,11,.12);
   color: #f59e0b;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 20px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 .card p {
   color: #94a3b8;
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 6px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .card .features {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid #1e293b;
 }
 .card .features li {
   list-style: none;
   color: #64748b;
-  font-size: 12px;
-  padding: 4px 0;
+  font-size: 11px;
+  padding: 2px 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .card .features li::before {
   content: '';
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: #334155;
   flex-shrink: 0;
@@ -124,11 +123,19 @@ body {
   background: #f59e0b;
 }
 .footer {
-  margin-top: 48px;
+  margin-top: 28px;
   text-align: center;
   color: #334155;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 1px;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  body { padding: 12px; justify-content: flex-start; padding-top: 32px; }
+  .header { margin-bottom: 20px; }
+  .cards { gap: 12px; }
+  .card { width: 100%; max-width: 340px; padding: 16px 14px; }
 }
 </style>
 </head>
@@ -136,7 +143,7 @@ body {
 
 <div class="header">
   <h1>लोकतंत्र वाणी</h1>
-  <p>AI News Card Studio &mdash; Crafted by Kautilya World</p>
+  <p>AI News Studio &mdash; Kautilya World</p>
 </div>
 
 <div class="cards">
@@ -144,13 +151,12 @@ body {
     <div class="card-icon">📰</div>
     <h2>Classic Studio</h2>
     <span class="version">v23 &mdash; Lite</span>
-    <p>Clean, fast newspaper card generator. Focused on quick generation with minimal UI.</p>
+    <p>Quick newspaper card generator with AI news feed.</p>
     <ul class="features">
-      <li>AI-powered news feed with Google Search</li>
-      <li>Multi-edition themes (Bihar, Kerala, Bengal...)</li>
-      <li>Image generation with Imagen + Gemini</li>
-      <li>Hindi / English / Bilingual output</li>
-      <li>One-click PNG download</li>
+      <li>Live news via Google Search</li>
+      <li>Multi-edition themes</li>
+      <li>AI image generation</li>
+      <li>Hindi / English / Bilingual</li>
     </ul>
   </a>
 
@@ -158,15 +164,12 @@ body {
     <div class="card-icon">🪷</div>
     <h2>Pro Studio</h2>
     <span class="version">v24 &mdash; Full</span>
-    <p>Full-featured studio with templates, RSS feeds, voice narration, and sharing tools.</p>
+    <p>Full studio with templates, RSS, voice &amp; sharing.</p>
     <ul class="features">
-      <li>Everything in Classic, plus:</li>
-      <li>5 card templates: Grid, Hero, Breaking, Sports, Opinion</li>
-      <li>RSS feed ingestion for custom news sources</li>
-      <li>Drag-and-drop panel reordering</li>
-      <li>Voice narration (Hindi / English TTS)</li>
-      <li>WhatsApp + Email sharing with contacts</li>
-      <li>Installable as mobile app (PWA)</li>
+      <li>5 card templates</li>
+      <li>RSS feed ingestion</li>
+      <li>Voice narration &amp; sharing</li>
+      <li>Installable PWA</li>
     </ul>
   </a>
 
@@ -174,14 +177,12 @@ body {
     <div class="card-icon">✍</div>
     <h2>Column Writer</h2>
     <span class="version">v25 &mdash; Article</span>
-    <p>Full newspaper column generator with author byline, photo, and editorial styling.</p>
+    <p>Newspaper editorial column with author byline &amp; photo.</p>
     <ul class="features">
-      <li>Long-form editorial / opinion / analysis column</li>
-      <li>Author name, designation &amp; photo (AI or upload)</li>
-      <li>Content from URL, topic, or talking points</li>
-      <li>Authentic newspaper typography &amp; layout</li>
-      <li>Hindi / English / Bilingual output</li>
-      <li>PNG download with print-quality rendering</li>
+      <li>Long-form opinion / editorial</li>
+      <li>Author photo (AI or upload)</li>
+      <li>Content from URL or topic</li>
+      <li>Authentic newspaper layout</li>
     </ul>
   </a>
 </div>
