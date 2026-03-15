@@ -757,7 +757,7 @@ let _serverKey = '';
 let _hasOpenAI = false;
 
 // Fetch server keys on load
-fetch('/api/key').then(r=>r.json()).then(d=>{
+const _keyReady = fetch('/api/key').then(r=>r.json()).then(d=>{
   if(d.key) _serverKey=d.key;
   if(d.openai) _hasOpenAI=true;
 }).catch(()=>{});
@@ -829,8 +829,8 @@ const BASE_NEWS = [
   renderFeed(); // show base news instantly
   // If using server proxy, show key as configured
   if (USE_PROXY) { document.getElementById('keyok').textContent = '✓ Server key active'; document.getElementById('keyok').style.display = 'block'; }
-  // Auto-fetch live news
-  setTimeout(() => refreshFeed(), 400);
+  // Auto-fetch live news after server key is ready
+  _keyReady.then(() => refreshFeed());
 })();
 
 // ── CONTROLS ──────────────────────────────────────────────────────────────────
