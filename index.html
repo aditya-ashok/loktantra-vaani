@@ -29,13 +29,10 @@ body {
   height: 3px;
   background: linear-gradient(90deg, #138808, #fff, #FF9933);
 }
-.chakra {
-  width: 56px; height: 56px;
-  margin: 0 auto 12px;
-  opacity: .12;
-  animation: spin-slow 30s linear infinite;
+.logo {
+  width: 200px; height: 80px;
+  margin: 0 auto 8px;
 }
-@keyframes spin-slow { to { transform: rotate(360deg); } }
 .hero h1 {
   font-family: 'Noto Sans Devanagari', serif;
   font-size: clamp(32px, 7vw, 56px);
@@ -185,23 +182,26 @@ body {
 <body>
 
 <div class="hero">
-  <!-- Ashoka Chakra SVG -->
-  <svg class="chakra" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="50" cy="50" r="45" stroke="#f59e0b" stroke-width="2"/>
-    <circle cx="50" cy="50" r="8" fill="#f59e0b"/>
-    <g stroke="#f59e0b" stroke-width="1.5">
-      <line x1="50" y1="5" x2="50" y2="95"/>
-      <line x1="5" y1="50" x2="95" y2="50"/>
-      <line x1="17.3" y1="17.3" x2="82.7" y2="82.7"/>
-      <line x1="82.7" y1="17.3" x2="17.3" y2="82.7"/>
-      <line x1="50" y1="5" x2="50" y2="95" transform="rotate(22.5 50 50)"/>
-      <line x1="50" y1="5" x2="50" y2="95" transform="rotate(67.5 50 50)"/>
-      <line x1="50" y1="5" x2="50" y2="95" transform="rotate(112.5 50 50)"/>
-      <line x1="50" y1="5" x2="50" y2="95" transform="rotate(157.5 50 50)"/>
+  <!-- Public India Voice Logo -->
+  <svg class="logo" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Megaphone / Voice icon -->
+    <g transform="translate(60,8)">
+      <!-- Megaphone body -->
+      <path d="M30 20 L60 8 L60 52 L30 40 Z" fill="#f59e0b" opacity=".9"/>
+      <rect x="18" y="22" width="14" height="16" rx="2" fill="#f59e0b"/>
+      <!-- Sound waves -->
+      <path d="M65 18 Q78 30 65 42" stroke="#FF9933" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M70 10 Q88 30 70 50" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
+      <path d="M75 3 Q97 30 75 57" stroke="#138808" stroke-width="2" fill="none" stroke-linecap="round" opacity=".4"/>
+      <!-- Handle -->
+      <rect x="22" y="38" width="6" height="14" rx="1" fill="#d97706"/>
     </g>
+    <!-- Ashoka Chakra mini -->
+    <circle cx="100" cy="66" r="7" stroke="#f59e0b" stroke-width="1" opacity=".3"/>
+    <circle cx="100" cy="66" r="2" fill="#f59e0b" opacity=".3"/>
   </svg>
   <h1>लोकतंत्र वाणी</h1>
-  <div class="tagline">Voice of Democracy &mdash; AI-Powered Indian Journalism</div>
+  <div class="tagline">Public India Voice &mdash; AI-Powered Indian Journalism</div>
   <div class="stats">
     <div class="stat"><b>7</b>Editions</div>
     <div class="stat"><b>3</b>Languages</div>
@@ -213,6 +213,19 @@ body {
 
 <div class="cards-wrap">
 <div class="cards">
+  <a class="card" href="/column.html">
+    <div class="card-icon">✍</div>
+    <h2>Column Writer</h2>
+    <span class="version">v25 &mdash; Article</span>
+    <p>Newspaper editorial column with author byline &amp; photo.</p>
+    <ul class="features">
+      <li>Long-form opinion / editorial</li>
+      <li>Author photo (AI or upload)</li>
+      <li>Content from URL or topic</li>
+      <li>Authentic newspaper layout</li>
+    </ul>
+  </a>
+
   <a class="card" href="/v21.html">
     <div class="card-icon">📰</div>
     <h2>Classic Studio</h2>
@@ -236,19 +249,6 @@ body {
       <li>RSS feed ingestion</li>
       <li>Voice narration &amp; sharing</li>
       <li>Installable PWA</li>
-    </ul>
-  </a>
-
-  <a class="card" href="/column.html">
-    <div class="card-icon">✍</div>
-    <h2>Column Writer</h2>
-    <span class="version">v25 &mdash; Article</span>
-    <p>Newspaper editorial column with author byline &amp; photo.</p>
-    <ul class="features">
-      <li>Long-form opinion / editorial</li>
-      <li>Author photo (AI or upload)</li>
-      <li>Content from URL or topic</li>
-      <li>Authentic newspaper layout</li>
     </ul>
   </a>
 </div>
