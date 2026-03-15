@@ -69,11 +69,11 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .col-ibar .it::before { content:'🪷'; font-size:8px; }
 
 /* Main content area — 2-column equal newspaper grid */
-.col-content { display:grid; grid-template-columns:1fr 1fr; gap:0; flex:1; }
+.col-content { display:grid; grid-template-columns:1fr 1fr; gap:0; flex:1; overflow:hidden; }
 
 /* Column sections */
-.col-main { grid-column:1; padding:5px 10px 4px; border-right:1px solid #c4b89a; }
-.col-sidebar { grid-column:2; padding:5px 8px 4px; }
+.col-main { grid-column:1; padding:5px 10px 8px; border-right:1px solid #c4b89a; }
+.col-sidebar { grid-column:2; padding:5px 8px 8px; }
 
 .col-section-label { font-family:'Source Sans 3',sans-serif; font-size:7px; color:var(--brown); text-transform:uppercase; letter-spacing:2px; font-weight:700; margin-bottom:4px; display:block; }
 .col-section-rule { width:40px; height:2px; background:var(--gold); margin-bottom:6px; }
@@ -824,6 +824,8 @@ ${sectionStyle}
 ${toneInst}
 ${sourceContext}
 
+CRITICAL: Do NOT hallucinate or fabricate quotes, statistics, or attributions. Never write "According to X" or "As Y said" unless you found that exact quote from your search. Do NOT invent expert names, study results, or data points. If you don't have real data, use general reasoning and analysis instead of fake citations. Only use REAL, VERIFIED facts and quotes.
+
 Write a compelling newspaper ${sectionName.toLowerCase()} column (${lengthConfig.wordRange}). The writing must feel like a REAL printed newspaper — authoritative, incisive, polished. Write LONG, substantial paragraphs.
 
 Return ONLY valid JSON (no markdown, no extra text):
@@ -1088,21 +1090,28 @@ function renderColumn() {
 }
 
 async function dlPNG() {
-  const wrap = document.getElementById('colNpWrap');
-  if (!wrap) return;
+  const pages = document.querySelectorAll('#colNpWrap .col-np');
+  if (!pages.length) return;
+  const bg = paperTheme === 'white' ? '#ffffff' : '#f5f0e6';
+  const date = new Date().toISOString().slice(0,10);
+  const total = pages.length;
   try {
-    const bg = paperTheme === 'white' ? '#ffffff' : '#f5f0e6';
-    const canvas = await html2canvas(wrap, {scale:2, useCORS:true, backgroundColor: bg});
-    const a = document.createElement('a');
-    a.download = `loktantra-vaani-column-${new Date().toISOString().slice(0,10)}.png`;
-    a.href = canvas.toDataURL('image/png');
-    a.click();
+    for (let i = 0; i < total; i++) {
+      const canvas = await html2canvas(pages[i], {scale:2, useCORS:true, backgroundColor: bg});
+      const a = document.createElement('a');
+      a.download = total === 1
+        ? `loktantra-vaani-column-${date}.png`
+        : `loktantra-vaani-column-${date}-${i+1}of${total}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      if (total > 1) await new Promise(r => setTimeout(r, 500)); // small delay between downloads
+    }
   } catch(e) { alert('Download error: '+e.message); }
 }
 
 async function shareWhatsApp() {
-  const np = document.getElementById('colNpWrap');
-  if (!np) return;
+  const pages = document.querySelectorAll('#colNpWrap .col-np');
+  if (!pages.length) return;
 
   const sectionNames = {
     en: {opinion:'OpEd', editorial:'Editorial', analysis:'Analysis'},
@@ -1110,6 +1119,7 @@ async function shareWhatsApp() {
   };
   const sLang = lang === 'hi' ? 'hi' : 'en';
   const sName = sectionNames[sLang][section] || section;
+  const total = pages.length;
 
   let msg;
   if (lang === 'hi') {
@@ -1117,14 +1127,24 @@ async function shareWhatsApp() {
   } else {
     msg = `Sharing my ${sName} on Loktantra Vaani 🗞️\n\n"${columnData.headline}"\n\n✍️ ${columnData.authorName}\n🪷 Kautilya World`;
   }
+  if (total > 1) {
+    msg += lang === 'hi' ? `\n📄 ${total} पृष्ठ` : `\n📄 ${total} pages`;
+  }
 
-  // Try Web Share API with image (mobile), fallback to WhatsApp URL
+  // Capture all pages as separate images
+  const bg = paperTheme === 'white' ? '#ffffff' : '#f5f0e6';
   try {
-    const canvas = await html2canvas(np, {scale:2, useCORS:true, backgroundColor: paperTheme === 'white' ? '#ffffff' : '#f5f0e6'});
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-    const file = new File([blob], 'loktantra-vaani-column.png', {type:'image/png'});
-    if (navigator.canShare && navigator.canShare({files:[file]})) {
-      await navigator.share({text: msg, files:[file]});
+    const files = [];
+    for (let i = 0; i < total; i++) {
+      const canvas = await html2canvas(pages[i], {scale:2, useCORS:true, backgroundColor: bg});
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      const fname = total === 1
+        ? 'loktantra-vaani-column.png'
+        : `loktantra-vaani-column-${i+1}of${total}.png`;
+      files.push(new File([blob], fname, {type:'image/png'}));
+    }
+    if (navigator.canShare && navigator.canShare({files})) {
+      await navigator.share({text: msg, files});
       return;
     }
   } catch(e) { console.warn('Web Share failed:', e); }
