@@ -488,17 +488,33 @@ async function getColumnContent(sourceUrl, sourceTopic) {
 
   let sourceContext = '';
   if (isXPost) {
+    const xHandle = sourceUrl.match(/(?:x\.com|twitter\.com)\/(\w+)\/status/)?.[1] || '';
     sourceContext = `\n\nSOURCE: X (Twitter) post URL: ${sourceUrl}
-Use Google Search to find and read this X/Twitter post. Extract:
-1. The author's name and handle (e.g., @naaboramodi → Narendra Modi)
-2. The full text/content of the post (including any quoted text or thread)
-3. If it contains a video, describe what the video is about based on replies/context
+HANDLE: @${xHandle}
 
-IMPORTANT: Write the column AS IF written by that X account's person. Use their name as the author. Base the column entirely on the content/stance expressed in that post. If the person is a politician, use their real designation (e.g., "Prime Minister of India", "Member of Parliament"). If unknown, use "Public Commentator".
+STEP 1: Search Google for this EXACT post. Try these searches in order:
+  - "site:x.com ${xHandle}" + keywords from the URL
+  - "${xHandle} twitter" + today's date
+  - "x.com/status/${sourceUrl.match(/status\/(\d+)/)?.[1] || ''}"
+Also search for: "@${xHandle}" to find their full name and designation.
 
-In the JSON response, also include:
-"xAuthorName": "real name of the X account owner",
-"xAuthorDesig": "their designation/title"`;
+STEP 2: If the post contains a VIDEO that you cannot view directly:
+  - Search for news articles, replies, and quotes about this specific post
+  - Search "${xHandle} video" with recent date to find what the video is about
+  - Use the post text, replies, quote tweets, and news coverage to understand the video content
+  - Write the column based on the TOPIC and CONTEXT of the video, not just the caption
+
+STEP 3: Extract:
+1. The author's REAL full name (not just the handle)
+2. Their official designation/title (politician, journalist, actor, etc.)
+3. The full text/content of the post
+4. If video: the topic/subject based on news coverage and context
+
+IMPORTANT: Write the column AS IF written by that X account's person. Use their real name as the author. Base the column entirely on the content/stance expressed in that post. If the person is a politician, use their real designation (e.g., "Prime Minister of India", "Member of Parliament"). If unknown, use "Public Commentator".
+
+In the JSON response, you MUST include:
+"xAuthorName": "real full name of the X account owner",
+"xAuthorDesig": "their official designation/title"`;
   } else if (sourceUrl) {
     sourceContext = `\n\nSource article URL: ${sourceUrl}\nRead this article thoroughly using the URL and base your column on its content, facts, and developments. Add your own analysis and perspective.`;
   }
