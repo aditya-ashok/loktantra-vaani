@@ -54,55 +54,66 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .right { padding:28px 24px; display:flex; flex-direction:column; align-items:center; gap:18px; overflow-y:auto; }
 
 /* ── NEWSPAPER COLUMN ── */
-.col-np { width:100%; max-width:960px; aspect-ratio:16/9; background:var(--cream); border:2px solid var(--dark); box-shadow:0 0 0 4px var(--cream),0 0 0 6px var(--dark),0 16px 48px rgba(0,0,0,.35); overflow:hidden; position:relative; }
-.col-np.page2 { margin-top:16px; }
-.page-label { position:absolute; top:6px; right:10px; font-size:8px; color:#94856e; font-family:'Source Sans 3',sans-serif; font-weight:700; letter-spacing:1px; text-transform:uppercase; z-index:2; }
-.col-mast { background:var(--cream); text-align:center; padding:8px 10px 6px; border-bottom:3px solid var(--dark); }
-.col-mast h1 { font-size:clamp(28px,5vw,48px); font-weight:900; color:var(--dark); line-height:1; letter-spacing:-1px; font-family:'Noto Sans Devanagari','Mangal',sans-serif; }
-.col-ibar { display:flex; justify-content:space-between; align-items:center; padding:3px 10px; border-bottom:2px solid var(--dark); background:var(--dark); }
-.col-ibar span { font-size:9px; font-weight:700; color:var(--cream); font-family:'Source Sans 3',sans-serif; }
-.col-ibar .it { font-weight:800; color:var(--gold); letter-spacing:.8px; font-family:'Playfair Display',serif; font-size:10px; display:flex; align-items:center; gap:3px; }
-.col-ibar .it::before { content:'🪷'; font-size:9px; }
+.col-np { width:100%; max-width:960px; aspect-ratio:16/9; background:var(--cream); border:2px solid var(--dark); box-shadow:0 0 0 4px var(--cream),0 0 0 6px var(--dark),0 16px 48px rgba(0,0,0,.35); overflow:hidden; position:relative; display:flex; flex-direction:column; }
+.col-mast { background:var(--cream); text-align:center; padding:6px 10px 4px; border-bottom:3px double var(--dark); flex-shrink:0; }
+.col-mast h1 { font-size:clamp(24px,4.5vw,42px); font-weight:900; color:var(--dark); line-height:1; letter-spacing:-1px; font-family:'Noto Sans Devanagari','Mangal',sans-serif; }
+.col-ibar { display:flex; justify-content:space-between; align-items:center; padding:2px 10px; border-bottom:1.5px solid var(--dark); background:var(--dark); flex-shrink:0; }
+.col-ibar span { font-size:8px; font-weight:700; color:var(--cream); font-family:'Source Sans 3',sans-serif; }
+.col-ibar .it { font-weight:800; color:var(--gold); letter-spacing:.8px; font-family:'Playfair Display',serif; font-size:9px; display:flex; align-items:center; gap:3px; }
+.col-ibar .it::before { content:'🪷'; font-size:8px; }
 
-.col-body { padding:10px 16px 8px; }
-.col-section-label { font-family:'Playfair Display',serif; font-size:8px; color:var(--gold); text-transform:uppercase; letter-spacing:2.5px; font-weight:700; margin-bottom:6px; border-bottom:1.5px solid var(--gold); padding-bottom:2px; display:inline-block; }
-.col-headline { font-family:'Noto Sans Devanagari',serif; font-size:clamp(16px,3vw,22px); font-weight:900; line-height:1.15; color:var(--dark); margin-bottom:3px; }
-.col-subheadline { font-family:'Lora',Georgia,serif; font-size:clamp(9px,1.5vw,11px); font-style:italic; color:var(--brown); line-height:1.4; margin-bottom:8px; }
+/* Main content area — 3-column newspaper grid */
+.col-content { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; flex:1; overflow:hidden; }
+.col-content.hindi-layout { grid-template-columns:1.2fr 1fr; }
 
-/* Author byline */
-.col-byline { display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid #d4c9b4; }
-.col-author-img { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--dark); object-fit:cover; background:#d4c9b4; flex-shrink:0; }
-.col-author-img.initials-circle { display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:12px; font-weight:900; color:var(--dark); }
+/* Column sections */
+.col-main { grid-column:1/3; padding:8px 12px 6px; border-right:1px solid #c4b89a; }
+.col-sidebar { grid-column:3; padding:8px 10px 6px; }
+.col-content.hindi-layout .col-main { grid-column:1; border-right:1px solid #c4b89a; }
+.col-content.hindi-layout .col-sidebar { grid-column:2; }
+
+.col-section-label { font-family:'Source Sans 3',sans-serif; font-size:7px; color:var(--brown); text-transform:uppercase; letter-spacing:2px; font-weight:700; margin-bottom:4px; display:block; }
+.col-section-rule { width:40px; height:2px; background:var(--gold); margin-bottom:6px; }
+.col-headline { font-family:'Playfair Display','Noto Sans Devanagari',serif; font-size:clamp(14px,2.8vw,20px); font-weight:900; line-height:1.12; color:var(--dark); margin-bottom:3px; }
+.col-subheadline { font-family:'Lora',Georgia,serif; font-size:9px; font-style:italic; color:var(--brown); line-height:1.35; margin-bottom:6px; border-bottom:1px solid #c4b89a; padding-bottom:5px; }
+
+/* Author byline — inline newspaper style */
+.col-byline { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.col-author-img { width:24px; height:24px; border-radius:50%; border:1px solid var(--dark); object-fit:cover; background:#d4c9b4; flex-shrink:0; }
+.col-author-img.initials-circle { display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:9px; font-weight:900; color:var(--dark); }
 .col-author-info { flex:1; }
-.col-author-name { font-family:'Playfair Display',serif; font-size:10px; font-weight:700; color:var(--dark); }
-.col-author-desig { font-family:'Source Sans 3',sans-serif; font-size:8px; color:#7d6144; margin-top:0; }
-.col-author-org { font-family:'Source Sans 3',sans-serif; font-size:7px; color:#94856e; font-weight:600; }
+.col-author-name { font-family:'Playfair Display',serif; font-size:9px; font-weight:700; color:var(--dark); display:inline; }
+.col-author-desig { font-family:'Source Sans 3',sans-serif; font-size:7px; color:#7d6144; display:inline; margin-left:4px; }
+.col-author-org { display:none; }
 
-/* Hero image */
-.col-hero { width:100%; max-height:180px; position:relative; overflow:hidden; margin-bottom:3px; border:1px solid var(--dark); }
-.col-hero img { width:100%; height:100%; object-fit:cover; display:block; }
-.col-hero .lwrap { display:flex; align-items:center; justify-content:center; height:120px; background:#d4c9b4; }
-.col-hero .spin { width:22px; height:22px; border-radius:50%; border:2px solid rgba(100,60,30,.15); border-top-color:var(--brown); animation:spin .8s linear infinite; }
-.col-caption { font-family:'Source Sans 3',sans-serif; font-size:7px; color:#94856e; font-style:italic; padding:2px 0 6px; border-bottom:1px solid #d4c9b4; margin-bottom:6px; }
+/* Hero image — in sidebar */
+.col-hero { width:100%; position:relative; overflow:hidden; margin-bottom:3px; border:1px solid var(--dark); }
+.col-hero img { width:100%; display:block; }
+.col-hero .lwrap { display:flex; align-items:center; justify-content:center; height:100px; background:#d4c9b4; }
+.col-hero .spin { width:18px; height:18px; border-radius:50%; border:2px solid rgba(100,60,30,.15); border-top-color:var(--brown); animation:spin .8s linear infinite; }
+.col-caption { font-family:'Source Sans 3',sans-serif; font-size:6.5px; color:#94856e; font-style:italic; padding:2px 0 4px; border-bottom:1px solid #c4b89a; margin-bottom:5px; }
 
 /* Article body */
-.col-text { font-family:'Lora','Noto Sans Devanagari',Georgia,serif; font-size:10px; line-height:1.6; color:var(--text); text-align:justify; hyphens:auto; }
-.col-text.two-col { column-count:2; column-gap:14px; column-rule:1px solid #d4c9b4; }
-.col-text p { margin-bottom:5px; text-indent:1em; }
+.col-text { font-family:'Lora','Noto Sans Devanagari',Georgia,serif; font-size:8.5px; line-height:1.55; color:var(--text); text-align:justify; hyphens:auto; }
+.col-text p { margin-bottom:4px; text-indent:.8em; }
 .col-text p:first-child { text-indent:0; }
-.col-text p:first-child::first-letter { font-family:'Playfair Display',serif; font-size:2.4em; float:left; line-height:.75; margin:2px 4px 0 0; color:var(--dark); font-weight:900; }
+.col-text p:first-child::first-letter { font-family:'Playfair Display',serif; font-size:2.2em; float:left; line-height:.72; margin:1px 3px 0 0; color:var(--dark); font-weight:900; }
 
-/* Pull quote */
-.col-pullquote { border-left:3px solid var(--gold); border-right:3px solid var(--gold); padding:6px 10px; margin:8px 0; background:rgba(245,158,11,.04); text-align:center; column-span:all; }
-.col-pullquote p { font-family:'Playfair Display',serif; font-size:clamp(10px,1.8vw,13px); font-style:italic; font-weight:700; color:var(--brown); line-height:1.4; text-indent:0 !important; margin:0; }
-.col-pullquote p::before { content:'\201C'; font-size:1.3em; }
-.col-pullquote p::after { content:'\201D'; font-size:1.3em; }
+/* Pull quote — sidebar highlight */
+.col-pullquote { border-left:2px solid var(--gold); padding:5px 8px; margin:6px 0; background:rgba(245,158,11,.05); }
+.col-pullquote p { font-family:'Playfair Display',serif; font-size:9px; font-style:italic; font-weight:700; color:var(--brown); line-height:1.35; text-indent:0 !important; margin:0; }
+.col-pullquote p::before { content:'\201C'; font-size:1.2em; color:var(--gold); }
+.col-pullquote p::after { content:'\201D'; font-size:1.2em; color:var(--gold); }
+
+/* Sidebar continuation text */
+.col-sidebar-text { font-family:'Lora','Noto Sans Devanagari',Georgia,serif; font-size:8.5px; line-height:1.55; color:var(--text); text-align:justify; hyphens:auto; }
+.col-sidebar-text p { margin-bottom:4px; text-indent:.8em; }
 
 /* Footer */
-.col-foot { display:grid; grid-template-columns:1fr 1fr 1fr; border-top:2px solid var(--dark); }
-.fc { padding:5px 6px; display:flex; align-items:center; justify-content:center; gap:4px; font-size:8px; font-weight:700; font-family:'Source Sans 3',sans-serif; }
-.fc.br { background:var(--brown); color:#f5f0e8; border-right:1.5px solid var(--dark); }
-.fc.cr { background:var(--cream); color:var(--dark); border-right:1.5px solid var(--dark); }
+.col-foot { display:grid; grid-template-columns:1fr 1fr 1fr; border-top:1.5px solid var(--dark); flex-shrink:0; }
+.fc { padding:3px 6px; display:flex; align-items:center; justify-content:center; gap:3px; font-size:7px; font-weight:700; font-family:'Source Sans 3',sans-serif; }
+.fc.br { background:var(--brown); color:#f5f0e8; border-right:1px solid var(--dark); }
+.fc.cr { background:var(--cream); color:var(--dark); border-right:1px solid var(--dark); }
 .fc.br2 { background:var(--brown); color:#f5f0e8; }
 
 /* DL row */
@@ -129,13 +140,14 @@ textarea.cinput { resize:vertical; min-height:60px; }
   .left { height:auto; position:static; border-right:none; border-bottom:3px solid var(--gold); }
   .right { padding:12px 8px; }
   .col-np { aspect-ratio:auto; box-shadow:0 0 0 3px var(--cream),0 0 0 5px var(--dark),0 8px 24px rgba(0,0,0,.3); }
-  .col-text.two-col { column-count:1; }
+  .col-content { grid-template-columns:1fr !important; }
+  .col-main { grid-column:1 !important; border-right:none; border-bottom:1px solid #c4b89a; }
+  .col-sidebar { grid-column:1 !important; }
 }
 @media (max-width:480px) {
   .sec { padding:10px 12px; }
   .lhead { padding:12px 14px 10px; }
   .gsec { padding:10px 12px; }
-  .col-body { padding:8px 10px; }
   .author-photo-preview { width:44px; height:44px; }
 }
 </style>
@@ -435,30 +447,37 @@ async function getColumnContent(sourceUrl, sourceTopic) {
     sourceContext += `\n\nTopic/talking points: ${sourceTopic}`;
   }
 
+  const sectionStyle = {
+    opinion: `STYLE: Personal, argumentative, first-person voice. Take a clear stance. Use rhetorical questions, personal anecdotes, and moral reasoning. Think Tavleen Singh, Shekhar Gupta, or Arun Shourie columns.`,
+    editorial: `STYLE: Institutional voice — authoritative, measured, balanced but firm. Write as "the newspaper's view" (no first person). Reference policy implications, institutional frameworks, and governance. Think TOI/Hindu editorials. Start with "THE" or a definitive statement.`,
+    analysis: `STYLE: Expert analytical voice — data-driven, objective, explanatory. Use statistics, expert quotes, comparative examples from other countries. Explain the "why" behind events. Think Mint or IE analysis pieces.`
+  }[section];
+
   const prompt = `You are a senior newspaper columnist writing for "लोकतंत्र वाणी", a prestigious Indian newspaper.
 
 ${langInst}
 
-Section: ${sectionName}
+SECTION: ${sectionName}
+${sectionStyle}
 ${sourceContext}
 
-Write a compelling, well-researched newspaper ${sectionName.toLowerCase()} column (600-800 words). The writing should be authoritative, insightful, and engaging — like columns in The Hindu, Indian Express, or Times of India.
+Write a compelling newspaper ${sectionName.toLowerCase()} column (500-600 words). The writing must feel like a REAL printed newspaper — authoritative, incisive, polished.
 
 Return ONLY valid JSON (no markdown, no extra text):
 {
-  "headline": "powerful attention-grabbing headline, max 12 words",
-  "subheadline": "one-line subtitle that adds context, 10-15 words",
+  "headline": "powerful attention-grabbing headline, max 10 words, newspaper style ALL CAPS feel",
+  "subheadline": "one-line context subtitle, 10-15 words",
   "paragraphs": [
-    "Opening paragraph — hook the reader with a striking observation or fact (80-100 words)",
-    "Context paragraph — background and key facts (80-100 words)",
-    "Analysis paragraph — your insight and argument (80-100 words)",
-    "Evidence paragraph — supporting data, quotes, examples (80-100 words)",
-    "Counterpoint or broader perspective paragraph (80-100 words)",
-    "Concluding paragraph — call to action or forward-looking statement (60-80 words)"
+    "Opening paragraph — hook with striking fact or observation (60-80 words)",
+    "Context paragraph — background and key developments (60-80 words)",
+    "Core argument / analysis paragraph (60-80 words)",
+    "Evidence — data, quotes, examples to support (60-80 words)",
+    "Broader perspective or counterpoint (50-70 words)",
+    "Conclusion — forward-looking, call to action (40-60 words)"
   ],
-  "pullQuote": "one powerful sentence from the column that deserves to stand out",
-  "imagePrompt": "vivid description for editorial illustration representing this column's theme, dramatic lighting, symbolic imagery",
-  "caption": "short caption for the illustration, 8-12 words"
+  "pullQuote": "one powerful sentence that deserves to stand out, max 20 words",
+  "imagePrompt": "vivid editorial illustration description — symbolic, dramatic lighting, Indian context",
+  "caption": "short illustration caption, 6-10 words"
 }`;
 
   let txt = '';
@@ -494,9 +513,8 @@ Return ONLY valid JSON (no markdown, no extra text):
 function renderColumn() {
   if (!columnData) return;
   const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
-  const sectionLabel = {opinion:'Opinion',editorial:'Editorial',analysis:'Analysis'}[section];
+  const sectionLabel = {opinion:'OPINION',editorial:'EDITORIAL',analysis:'ANALYSIS'}[section];
   const isHindi = lang === 'hi';
-  const textColClass = isHindi ? '' : ' two-col';
 
   // Author photo HTML
   let authorImgHTML;
@@ -517,94 +535,69 @@ function renderColumn() {
     <div class="col-caption">Generating illustration...</div>`;
   }
 
-  // Split paragraphs: first 3 on page 1, rest on page 2
+  // Split paragraphs: first 3 in main column, rest in sidebar
   const paras = columnData.paragraphs || [];
   const splitAt = 3;
-  const p1Paras = paras.slice(0, splitAt);
-  const p2Paras = paras.slice(splitAt);
+  const mainParas = paras.slice(0, splitAt);
+  const sideParas = paras.slice(splitAt);
 
-  let p1Body = '';
-  p1Paras.forEach(p => { p1Body += `<p>${p}</p>`; });
-  if (columnData.pullQuote) {
-    p1Body += `</div><div class="col-pullquote"><p>${columnData.pullQuote}</p></div><div class="col-text${textColClass}">`;
-  }
+  let mainBody = mainParas.map(p => `<p>${p}</p>`).join('');
+  let sideBody = sideParas.map(p => `<p>${p}</p>`).join('');
 
-  let p2Body = '';
-  p2Paras.forEach(p => { p2Body += `<p>${p}</p>`; });
+  const layoutClass = isHindi ? 'hindi-layout' : '';
 
-  const mastHead = `<div class="col-mast"><h1>लोकतंत्र वाणी</h1></div>
-    <div class="col-ibar">
-      <span>Bharat Edition</span>
-      <span class="it">Crafted by Kautilya World</span>
-      <span>${today}</span>
-    </div>`;
-
-  const footer = `<div class="col-foot">
-    <div class="fc br">✉ enquiry@kautilya.world</div>
-    <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
-    <div class="fc br2">🌐 kautilya.world</div>
-  </div>`;
-
-  // Page 1: masthead + headline + byline + hero + first paragraphs
-  let html = `
-    <div class="col-np fadein" id="colNp1">
-      <span class="page-label">${p2Paras.length > 0 ? 'Page 1 of 2' : ''}</span>
-      ${mastHead}
-      <div class="col-body">
-        <div class="col-section-label">${sectionLabel}</div>
-        <h2 class="col-headline">${columnData.headline}</h2>
-        <div class="col-subheadline">${columnData.subheadline || ''}</div>
-        <div class="col-byline">
-          ${authorImgHTML}
-          <div class="col-author-info">
-            <div class="col-author-name">By ${columnData.authorName}</div>
-            <div class="col-author-desig">${columnData.authorDesig}</div>
-            <div class="col-author-org">Kautilya World</div>
+  document.getElementById('right').innerHTML = `
+    <div class="col-np fadein" id="colNp">
+      <div class="col-mast"><h1>लोकतंत्र वाणी</h1></div>
+      <div class="col-ibar">
+        <span>Bharat Edition</span>
+        <span class="it">Kautilya World</span>
+        <span>${today}</span>
+      </div>
+      <div class="col-content ${layoutClass}">
+        <div class="col-main">
+          <div class="col-section-label">${sectionLabel}</div>
+          <div class="col-section-rule"></div>
+          <h2 class="col-headline">${columnData.headline}</h2>
+          <div class="col-subheadline">${columnData.subheadline || ''}</div>
+          <div class="col-byline">
+            ${authorImgHTML}
+            <div class="col-author-info">
+              <span class="col-author-name">By ${columnData.authorName}</span>
+              <span class="col-author-desig">| ${columnData.authorDesig}</span>
+            </div>
+          </div>
+          <div class="col-text">
+            ${mainBody}
           </div>
         </div>
-        ${heroHTML}
-        <div class="col-text${textColClass}">
-          ${p1Body}
+        <div class="col-sidebar">
+          ${heroHTML}
+          ${columnData.pullQuote ? `<div class="col-pullquote"><p>${columnData.pullQuote}</p></div>` : ''}
+          <div class="col-sidebar-text">
+            ${sideBody}
+          </div>
         </div>
       </div>
-      ${p2Paras.length === 0 ? footer : ''}
-    </div>`;
-
-  // Page 2: continuation with remaining paragraphs (if needed)
-  if (p2Paras.length > 0) {
-    html += `
-    <div class="col-np page2 fadein" id="colNp2">
-      <span class="page-label">Page 2 of 2</span>
-      ${mastHead}
-      <div class="col-body">
-        <div class="col-section-label">${sectionLabel} — Continued</div>
-        <h2 class="col-headline" style="font-size:clamp(12px,2vw,16px);margin-bottom:6px">${columnData.headline}</h2>
-        <div class="col-text${textColClass}">
-          ${p2Body}
-        </div>
+      <div class="col-foot">
+        <div class="fc br">✉ enquiry@kautilya.world</div>
+        <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
+        <div class="fc br2">🌐 kautilya.world</div>
       </div>
-      ${footer}
-    </div>`;
-  }
-
-  html += `
+    </div>
     <div class="dlrow">
-      <button class="dlbtn" onclick="dlPNG(1)">⬇ ${p2Paras.length > 0 ? 'Download Page 1' : 'Download PNG'}</button>
-      ${p2Paras.length > 0 ? '<button class="dlbtn" onclick="dlPNG(2)">⬇ Download Page 2</button>' : ''}
+      <button class="dlbtn" onclick="dlPNG()">⬇ Download PNG</button>
       <button class="dlbtn gold" onclick="generateColumn()">↺ Regenerate</button>
     </div>`;
-
-  document.getElementById('right').innerHTML = html;
 }
 
-async function dlPNG(page) {
-  const np = document.getElementById(page === 2 ? 'colNp2' : 'colNp1');
+async function dlPNG() {
+  const np = document.getElementById('colNp');
   if (!np) return;
   try {
     const canvas = await html2canvas(np, {scale:2, useCORS:true, backgroundColor:'#f5f0e6'});
     const a = document.createElement('a');
-    const suffix = page ? `-p${page}` : '';
-    a.download = `loktantra-vaani-column${suffix}-${new Date().toISOString().slice(0,10)}.png`;
+    a.download = `loktantra-vaani-column-${new Date().toISOString().slice(0,10)}.png`;
     a.href = canvas.toDataURL('image/png');
     a.click();
   } catch(e) { alert('Download error: '+e.message); }
