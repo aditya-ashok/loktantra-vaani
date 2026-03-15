@@ -139,6 +139,9 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .edit-bar .eb-btn.active { border-color:#f59e0b; background:rgba(245,158,11,.1); color:#f59e0b; }
 .edit-bar .eb-btn.img-btn { border-color:#1d9bf0; color:#1d9bf0; }
 .edit-bar .eb-btn.img-btn:hover { background:rgba(29,155,240,.1); }
+.author-edit-panel { display:none; margin-top:8px; padding:8px 0 0; border-top:1px solid #1e293b; }
+.author-edit-panel.show { display:block; }
+.author-edit-panel .irow { display:flex; gap:6px; }
 .img-insert-panel { display:none; margin-top:8px; padding:8px; background:#090d14; border-radius:6px; border:1px solid #1e293b; }
 .img-insert-panel.show { display:block; }
 .img-insert-panel .irow { display:flex; gap:6px; align-items:center; margin-bottom:6px; }
@@ -561,6 +564,35 @@ async function generateColumn() {
       columnData.authorDesig = authorDesig || section.charAt(0).toUpperCase() + section.slice(1) + ' Writer';
     }
 
+    // Auto-translate author to Hindi if language is Hindi
+    if (lang === 'hi') {
+      try {
+        const hiPrompt = `Transliterate/translate to Hindi (Devanagari). For names, transliterate phonetically. For titles, use Hindi equivalent.
+Return ONLY JSON: {"name":"hindi","desig":"hindi"}
+Name: ${columnData.authorName}
+Designation: ${columnData.authorDesig}`;
+        let hiTxt = '';
+        if (prov === 'openai') {
+          const {data: d} = await openaiProxy('https://api.openai.com/v1/chat/completions',
+            {model:'gpt-4o-mini',messages:[{role:'user',content:hiPrompt}],max_tokens:200});
+          hiTxt = d?.choices?.[0]?.message?.content || '';
+        } else {
+          const d = await geminiProxy('gemini-2.0-flash', {
+            contents:[{parts:[{text:hiPrompt}]}],
+            generationConfig:{temperature:0.3}
+          });
+          hiTxt = (d?.candidates?.[0]?.content?.parts || []).filter(p=>p.text).map(p=>p.text).join('\n');
+        }
+        hiTxt = hiTxt.replace(/```json\s*/g,'').replace(/```/g,'').trim();
+        const hiMatch = hiTxt.match(/\{[\s\S]*\}/);
+        const hiParsed = JSON.parse(hiMatch ? hiMatch[0] : hiTxt);
+        if (hiParsed.name) columnData.authorName = hiParsed.name;
+        if (hiParsed.desig) columnData.authorDesig = hiParsed.desig;
+        document.getElementById('authorName').value = columnData.authorName;
+        document.getElementById('authorDesig').value = columnData.authorDesig;
+      } catch(e) { console.warn('Hindi author translation skipped:', e); }
+    }
+
     // Render with placeholder image
     heroImg = null;
     renderColumn();
@@ -874,7 +906,20 @@ function renderColumn() {
       <div class="eb-title">Edit & Enhance</div>
       <div class="eb-row">
         <button class="eb-btn" id="editToggle" onclick="toggleEdit()">✏️ Edit Text</button>
+        <button class="eb-btn" id="authorEditToggle" onclick="toggleAuthorEdit()">👤 Edit Author</button>
         <button class="eb-btn img-btn" id="imgToggle" onclick="toggleImgPanel()">🖼️ Add Image</button>
+      </div>
+      <div class="author-edit-panel" id="authorEditPanel">
+        <div class="irow" style="margin-bottom:6px;">
+          <input type="text" id="editAuthorName" placeholder="Author Name" value="${columnData.authorName||''}" style="flex:1;background:#090d14;border:1.5px solid #1e293b;border-radius:5px;padding:7px 10px;color:#e2e8f0;font-size:12px;outline:none;font-family:'Source Sans 3',sans-serif;"/>
+        </div>
+        <div class="irow" style="margin-bottom:6px;">
+          <input type="text" id="editAuthorDesig" placeholder="Designation" value="${columnData.authorDesig||''}" style="flex:1;background:#090d14;border:1.5px solid #1e293b;border-radius:5px;padding:7px 10px;color:#e2e8f0;font-size:12px;outline:none;font-family:'Source Sans 3',sans-serif;"/>
+        </div>
+        <div class="irow" style="gap:6px;">
+          <button class="eb-btn" onclick="applyAuthorEdit()" style="flex:1;">✅ Apply</button>
+          <button class="eb-btn" onclick="translateAuthorHindi()" style="flex:1;border-color:#a78bfa;color:#a78bfa;">🇮🇳 Hindi</button>
+        </div>
       </div>
       <div class="img-insert-panel" id="imgPanel">
         <div class="irow">
@@ -952,6 +997,78 @@ function toggleEdit() {
       el.removeAttribute('contenteditable');
     }
   });
+}
+
+// ── EDIT AUTHOR ──────────────────────────────────────────────────────────────
+function toggleAuthorEdit() {
+  const panel = document.getElementById('authorEditPanel');
+  const btn = document.getElementById('authorEditToggle');
+  const show = !panel.classList.contains('show');
+  panel.classList.toggle('show', show);
+  btn.classList.toggle('active', show);
+}
+
+function applyAuthorEdit() {
+  const newName = document.getElementById('editAuthorName').value.trim();
+  const newDesig = document.getElementById('editAuthorDesig').value.trim();
+  if (!newName) { alert('Author name cannot be empty.'); return; }
+  columnData.authorName = newName;
+  columnData.authorDesig = newDesig || columnData.authorDesig;
+  // Update left panel inputs too
+  document.getElementById('authorName').value = newName;
+  document.getElementById('authorDesig').value = newDesig;
+  // Update rendered name/desig in all pages
+  document.querySelectorAll('.col-author-name').forEach(el => el.textContent = newName);
+  document.querySelectorAll('.col-author-desig').forEach(el => el.textContent = columnData.authorDesig);
+  // Update initials if no photo
+  if (!authorPhoto) {
+    const initials = newName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.querySelectorAll('.col-author-img.initials-circle').forEach(el => el.textContent = initials);
+  }
+}
+
+async function translateAuthorHindi() {
+  const nameEl = document.getElementById('editAuthorName');
+  const desigEl = document.getElementById('editAuthorDesig');
+  const name = nameEl.value.trim();
+  const desig = desigEl.value.trim();
+  if (!name) { alert('Enter author name first.'); return; }
+
+  const btn = document.querySelector('#authorEditPanel .irow:last-child button:last-child');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Translating...';
+  btn.disabled = true;
+
+  try {
+    const prompt = `Transliterate/translate the following to Hindi (Devanagari script). For proper names, transliterate phonetically. For designations/titles, translate to Hindi equivalent.
+Return ONLY a JSON object: {"name":"hindi name","desig":"hindi designation"}
+Name: ${name}
+Designation: ${desig || 'Columnist'}`;
+
+    let txt = '';
+    if (prov === 'openai') {
+      const {data: d} = await openaiProxy('https://api.openai.com/v1/chat/completions',
+        {model:'gpt-4o-mini',messages:[{role:'user',content:prompt}],max_tokens:200});
+      txt = d?.choices?.[0]?.message?.content || '';
+    } else {
+      const d = await geminiProxy('gemini-2.0-flash', {
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.3}
+      });
+      txt = (d?.candidates?.[0]?.content?.parts || []).filter(p=>p.text).map(p=>p.text).join('\n');
+    }
+    txt = txt.replace(/```json\s*/g,'').replace(/```/g,'').trim();
+    const jsonMatch = txt.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : txt);
+    nameEl.value = parsed.name || name;
+    desigEl.value = parsed.desig || desig;
+  } catch(e) {
+    console.warn('Hindi translation failed:', e);
+    alert('Translation failed. Please type Hindi manually.');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
 }
 
 // ── ADD IMAGE ────────────────────────────────────────────────────────────────
