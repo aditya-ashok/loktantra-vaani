@@ -1123,12 +1123,12 @@ async function shareWhatsApp() {
 
   let msg;
   if (lang === 'hi') {
-    msg = `लोकतंत्र वाणी पर मेरा ${sName} पढ़ें 🗞️\n\n"${columnData.headline}"\n\n✍️ ${columnData.authorName}\n🪷 कौटिल्य वर्ल्ड`;
+    msg = `*${columnData.headline}*\n\n- ${columnData.authorName}\n\nLoktantra Vaani | Kautilya World`;
   } else {
-    msg = `Sharing my ${sName} on Loktantra Vaani 🗞️\n\n"${columnData.headline}"\n\n✍️ ${columnData.authorName}\n🪷 Kautilya World`;
+    msg = `*${columnData.headline}*\n\n- ${columnData.authorName}\n\nLoktantra Vaani | Kautilya World`;
   }
   if (total > 1) {
-    msg += lang === 'hi' ? `\n📄 ${total} पृष्ठ` : `\n📄 ${total} pages`;
+    msg += `\n(${total} pages)`;
   }
 
   // Capture all pages as separate images
@@ -1157,7 +1157,7 @@ async function shareWhatsApp() {
     // Try 2: Share one file at a time (some devices only support single file)
     for (let i = 0; i < files.length; i++) {
       try {
-        const pageMsg = total === 1 ? msg : msg + `\n\n📄 Page ${i+1}/${total}`;
+        const pageMsg = total === 1 ? msg : msg + `\n\nPage ${i+1}/${total}`;
         if (navigator.canShare({files:[files[i]]})) {
           await navigator.share({text: pageMsg, files:[files[i]]});
           continue;
