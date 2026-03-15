@@ -80,13 +80,13 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .col-headline { font-family:'Playfair Display','Noto Sans Devanagari',serif; font-size:clamp(14px,2.8vw,20px); font-weight:900; line-height:1.12; color:var(--dark); margin-bottom:3px; }
 .col-subheadline { font-family:'Lora',Georgia,serif; font-size:9px; font-style:italic; color:var(--brown); line-height:1.35; margin-bottom:6px; border-bottom:1px solid #c4b89a; padding-bottom:5px; }
 
-/* Author byline — inline newspaper style */
-.col-byline { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
-.col-author-img { width:24px; height:24px; border-radius:50%; border:1px solid var(--dark); object-fit:cover; background:#d4c9b4; flex-shrink:0; }
-.col-author-img.initials-circle { display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:9px; font-weight:900; color:var(--dark); }
-.col-author-info { flex:1; }
-.col-author-name { font-family:'Playfair Display',serif; font-size:9px; font-weight:700; color:var(--dark); display:inline; }
-.col-author-desig { font-family:'Source Sans 3',sans-serif; font-size:7px; color:#7d6144; display:inline; margin-left:4px; }
+/* Author byline — newspaper columnist plate */
+.col-byline { display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:6px 0; border-top:1px solid var(--lb); border-bottom:1px solid var(--lb); }
+.col-author-img { width:36px; height:36px; border-radius:50%; border:2px solid var(--dark); object-fit:cover; background:#d4c9b4; flex-shrink:0; }
+.col-author-img.initials-circle { display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:12px; font-weight:900; color:var(--dark); }
+.col-author-info { flex:1; display:flex; flex-direction:column; }
+.col-author-name { font-family:'Playfair Display',serif; font-size:10px; font-weight:900; color:var(--dark); line-height:1.2; letter-spacing:-.2px; }
+.col-author-desig { font-family:'Source Sans 3',sans-serif; font-size:7px; color:var(--brown); font-weight:600; letter-spacing:.3px; margin-top:1px; }
 .col-author-org { display:none; }
 
 /* Hero image — in sidebar */
@@ -147,6 +147,11 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .img-insert-panel .irow button { padding:6px 12px; border-radius:4px; border:none; font-weight:700; font-size:10px; cursor:pointer; font-family:'Source Sans 3',sans-serif; }
 .img-insert-panel .irow .ai-img-btn { background:#f59e0b; color:#1a1a2e; }
 .img-insert-panel .irow .upload-img-btn { background:#334155; color:#e2e8f0; }
+
+/* Multipage wrapper */
+#colNpWrap { display:flex; flex-direction:column; gap:24px; width:100%; max-width:960px; align-items:center; }
+#colNpWrap .col-np { max-width:960px; }
+.col-page-next { margin-top:0; }
 
 /* Photo grid */
 .photo-thumb { position:relative; width:56px; height:56px; border-radius:4px; overflow:hidden; border:1px solid #1e293b; }
@@ -655,19 +660,22 @@ ${sectionStyle}
 ${toneInst}
 ${sourceContext}
 
-Write a compelling newspaper ${sectionName.toLowerCase()} column (500-600 words). The writing must feel like a REAL printed newspaper — authoritative, incisive, polished.
+Write a compelling newspaper ${sectionName.toLowerCase()} column (800-1200 words). The writing must feel like a REAL printed newspaper — authoritative, incisive, polished. Write LONG, substantial paragraphs.
 
 Return ONLY valid JSON (no markdown, no extra text):
 {
   "headline": "powerful attention-grabbing headline, max 10 words, newspaper style ALL CAPS feel",
   "subheadline": "one-line context subtitle, 10-15 words",
   "paragraphs": [
-    "Opening paragraph — hook with striking fact or observation (60-80 words)",
-    "Context paragraph — background and key developments (60-80 words)",
-    "Core argument / analysis paragraph (60-80 words)",
-    "Evidence — data, quotes, examples to support (60-80 words)",
-    "Broader perspective or counterpoint (50-70 words)",
-    "Conclusion — forward-looking, call to action (40-60 words)"
+    "Opening paragraph — hook with striking fact or observation (80-120 words)",
+    "Context paragraph — background and key developments (80-120 words)",
+    "Core argument / analysis paragraph (80-120 words)",
+    "Evidence and examples — data, quotes to support (80-120 words)",
+    "Deeper analysis — implications and connections (80-120 words)",
+    "Broader perspective or counterpoint (60-100 words)",
+    "Historical context or comparison (60-100 words)",
+    "Expert opinion or policy angle (60-80 words)",
+    "Conclusion — forward-looking, call to action (60-80 words)"
   ],
   "pullQuote": "one powerful sentence that deserves to stand out, max 20 words",
   "imagePrompt": "vivid editorial illustration description — symbolic, dramatic lighting, Indian context",
@@ -731,9 +739,16 @@ function renderColumn() {
     <div class="col-caption">Generating illustration...</div>`;
   }
 
-  // Split paragraphs evenly between two columns
+  // Smart paragraph splitting — account for sidebar images taking space
   const paras = columnData.paragraphs || [];
-  const splitAt = Math.ceil(paras.length / 2);
+  const hasHero = !!heroImg || true; // hero always present (loading or loaded)
+  const hasPhotos = articlePhotos.length > 0;
+  const hasPullQuote = !!columnData.pullQuote;
+  // Sidebar has images + pull quote, so give more text to main column
+  const sidebarExtraItems = (hasHero ? 2 : 0) + (hasPullQuote ? 1 : 0) + articlePhotos.length;
+  // Give main ~60% of paragraphs if sidebar has images, else 50/50
+  const mainRatio = sidebarExtraItems > 1 ? 0.65 : 0.5;
+  const splitAt = Math.max(1, Math.round(paras.length * mainRatio));
   const mainParas = paras.slice(0, splitAt);
   const sideParas = paras.slice(splitAt);
 
@@ -742,9 +757,41 @@ function renderColumn() {
 
   const layoutClass = isHindi ? 'hindi-layout' : '';
 
-  document.getElementById('right').innerHTML = `
-    <div class="col-np fadein" id="colNp">
-      <div class="col-mast">
+  // Build pages — if many paragraphs, split across multiple newspaper pages
+  const PARAS_PER_PAGE = 8; // ~8 paragraphs per page (both columns combined)
+  const totalParas = paras.length;
+  const pageCount = Math.max(1, Math.ceil(totalParas / PARAS_PER_PAGE));
+
+  let pagesHTML = '';
+  for (let pg = 0; pg < pageCount; pg++) {
+    const pgStart = pg * PARAS_PER_PAGE;
+    const pgEnd = Math.min(pgStart + PARAS_PER_PAGE, totalParas);
+    const pgParas = paras.slice(pgStart, pgEnd);
+
+    // For first page: use calculated split with hero/images in sidebar
+    // For subsequent pages: even 50/50 split, no hero/images
+    let pgMainParas, pgSideParas, pgHeroHTML, pgPullHTML, pgPhotosHTML;
+
+    if (pg === 0) {
+      const pgSplit = Math.max(1, Math.round(pgParas.length * mainRatio));
+      pgMainParas = pgParas.slice(0, pgSplit);
+      pgSideParas = pgParas.slice(pgSplit);
+      pgHeroHTML = heroHTML;
+      pgPullHTML = columnData.pullQuote ? `<div class="col-pullquote"><p>${columnData.pullQuote}</p></div>` : '';
+      pgPhotosHTML = articlePhotos.map((src, i) => `<div style="margin:6px 0"><img src="${src}" style="width:100%;display:block;border:1px solid #c4b89a" alt="photo ${i+1}"/></div>`).join('');
+    } else {
+      const pgSplit = Math.ceil(pgParas.length / 2);
+      pgMainParas = pgParas.slice(0, pgSplit);
+      pgSideParas = pgParas.slice(pgSplit);
+      pgHeroHTML = '';
+      pgPullHTML = '';
+      pgPhotosHTML = '';
+    }
+
+    const pgMainBody = pgMainParas.map(p => `<p>${p}</p>`).join('');
+    const pgSideBody = pgSideParas.map(p => `<p>${p}</p>`).join('');
+
+    const mastHTML = pg === 0 ? `<div class="col-mast">
         <svg class="mast-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <circle cx="40" cy="50" r="22" stroke="#1a1a2e" stroke-width="2.5" fill="none"/>
           <circle cx="40" cy="50" r="5" fill="#1a1a2e"/>
@@ -768,9 +815,13 @@ function renderColumn() {
         <span>Bharat Edition</span>
         <span class="it">Kautilya World</span>
         <span>${today}</span>
-      </div>
-      <div class="col-content ${layoutClass}">
-        <div class="col-main">
+      </div>` : `<div class="col-ibar" style="border-top:1.5px solid var(--lb)">
+        <span>लोकतंत्र वाणी</span>
+        <span class="it">Page ${pg + 1}</span>
+        <span>${today}</span>
+      </div>`;
+
+    const headlineBlock = pg === 0 ? `
           <div class="col-section-label">${sectionLabel}</div>
           <div class="col-section-rule"></div>
           <h2 class="col-headline">${columnData.headline}</h2>
@@ -779,28 +830,41 @@ function renderColumn() {
             ${authorImgHTML}
             <div class="col-author-info">
               <span class="col-author-name">${columnData.authorName}</span>
-              <span class="col-author-desig">| ${columnData.authorDesig}</span>
+              <span class="col-author-desig">${columnData.authorDesig}</span>
             </div>
-          </div>
-          <div class="col-text${lang === 'en' ? ' en-text' : ''}">
-            ${mainBody}
-          </div>
-        </div>
-        <div class="col-sidebar">
-          ${heroHTML}
-          ${columnData.pullQuote ? `<div class="col-pullquote"><p>${columnData.pullQuote}</p></div>` : ''}
-          ${articlePhotos.map((src, i) => `<div style="margin:6px 0"><img src="${src}" style="width:100%;display:block;border:1px solid #c4b89a" alt="article photo ${i+1}"/></div>`).join('')}
-          <div class="col-sidebar-text">
-            ${sideBody}
-          </div>
-        </div>
-      </div>
-      <div class="col-foot">
+          </div>` : `<div style="font-family:'Source Sans 3',sans-serif;font-size:7px;color:var(--brown);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">CONTINUED</div>`;
+
+    const footerHTML = `<div class="col-foot">
         <div class="fc br">✉ enquiry@kautilya.world</div>
         <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
         <div class="fc br2">🌐 kautilya.world</div>
+      </div>`;
+
+    pagesHTML += `
+    <div class="col-np fadein${pg > 0 ? ' col-page-next' : ''}" id="colNp${pg === 0 ? '' : pg}">
+      ${mastHTML}
+      <div class="col-content ${layoutClass}">
+        <div class="col-main">
+          ${headlineBlock}
+          <div class="col-text${lang === 'en' ? ' en-text' : ''}">
+            ${pgMainBody}
+          </div>
+        </div>
+        <div class="col-sidebar">
+          ${pgHeroHTML}
+          ${pgPullHTML}
+          ${pgPhotosHTML}
+          <div class="col-sidebar-text">
+            ${pgSideBody}
+          </div>
+        </div>
       </div>
-    </div>
+      ${footerHTML}
+    </div>`;
+  }
+
+  document.getElementById('right').innerHTML = `
+    <div id="colNpWrap">${pagesHTML}</div>
     <div class="dlrow">
       <button class="dlbtn" onclick="dlPNG()">⬇ Download PNG</button>
       <button class="dlbtn wa" onclick="shareWhatsApp()">📲 WhatsApp</button>
@@ -826,10 +890,11 @@ function renderColumn() {
 }
 
 async function dlPNG() {
-  const np = document.getElementById('colNp');
-  if (!np) return;
+  const wrap = document.getElementById('colNpWrap');
+  if (!wrap) return;
   try {
-    const canvas = await html2canvas(np, {scale:2, useCORS:true, backgroundColor: paperTheme === 'white' ? '#ffffff' : '#f5f0e6'});
+    const bg = paperTheme === 'white' ? '#ffffff' : '#f5f0e6';
+    const canvas = await html2canvas(wrap, {scale:2, useCORS:true, backgroundColor: bg});
     const a = document.createElement('a');
     a.download = `loktantra-vaani-column-${new Date().toISOString().slice(0,10)}.png`;
     a.href = canvas.toDataURL('image/png');
@@ -838,7 +903,7 @@ async function dlPNG() {
 }
 
 async function shareWhatsApp() {
-  const np = document.getElementById('colNp');
+  const np = document.getElementById('colNpWrap');
   if (!np) return;
 
   const sectionNames = {
