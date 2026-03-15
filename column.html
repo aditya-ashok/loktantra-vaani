@@ -223,7 +223,8 @@ textarea.cinput { resize:vertical; min-height:60px; }
   <div class="sec">
     <div class="slabel">Content Source</div>
     <input class="cinput" type="url" id="sourceUrl" placeholder="Paste article URL or X/Twitter post link" style="margin-bottom:6px" oninput="detectXLink(this.value)" />
-    <div id="xDetected" style="display:none;color:#1d9bf0;font-size:10px;margin:-2px 0 4px;font-weight:700">𝕏 Post detected — author & content will be extracted automatically</div>
+    <div id="xDetected" style="display:none;color:#1d9bf0;font-size:10px;margin:-2px 0 4px;font-weight:700">𝕏 Post detected — author will be extracted automatically</div>
+    <div id="xVideoHint" style="display:none;color:#f59e0b;font-size:10px;margin:-2px 0 4px;font-weight:700">⚠ If this post has a VIDEO, describe what it's about below ↓</div>
     <textarea class="cinput" id="sourceTopic" placeholder="Or type topic / headline / talking points...&#10;e.g., India's foreign policy shift in 2026"></textarea>
   </div>
 
@@ -386,6 +387,14 @@ function setTone(t) {
 function detectXLink(url) {
   const isX = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test(url.trim());
   document.getElementById('xDetected').style.display = isX ? 'block' : 'none';
+  document.getElementById('xVideoHint').style.display = isX ? 'block' : 'none';
+  if (isX) {
+    document.getElementById('sourceTopic').placeholder = 'Describe the video/post content here (helps AI write accurately)...\ne.g., PM Modi addressing rally about Make in India initiative';
+    document.getElementById('sourceTopic').style.borderColor = '#f59e0b';
+  } else {
+    document.getElementById('sourceTopic').placeholder = 'Or type topic / headline / talking points...\ne.g., India\'s foreign policy shift in 2026';
+    document.getElementById('sourceTopic').style.borderColor = '';
+  }
 }
 
 // ── AUTHOR PHOTO ─────────────────────────────────────────────────────────────
@@ -519,7 +528,10 @@ In the JSON response, you MUST include:
     sourceContext = `\n\nSource article URL: ${sourceUrl}\nRead this article thoroughly using the URL and base your column on its content, facts, and developments. Add your own analysis and perspective.`;
   }
   if (sourceTopic) {
-    sourceContext += `\n\nTopic/talking points: ${sourceTopic}`;
+    const isXContext = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test((sourceUrl||'').trim());
+    sourceContext += isXContext
+      ? `\n\nUSER-PROVIDED VIDEO/POST DESCRIPTION (USE THIS AS PRIMARY CONTENT SOURCE — this is what the video/post is about): ${sourceTopic}`
+      : `\n\nTopic/talking points: ${sourceTopic}`;
   }
 
   const sectionStyle = {
