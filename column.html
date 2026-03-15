@@ -59,9 +59,9 @@ textarea.cinput { resize:vertical; min-height:60px; }
 
 /* ── NEWSPAPER COLUMN ── */
 .col-np { width:100%; max-width:960px; background:var(--cream); border:2px solid var(--dark); box-shadow:0 0 0 4px var(--cream),0 0 0 6px var(--dark),0 16px 48px rgba(0,0,0,.35); position:relative; display:flex; flex-direction:column; }
-.col-mast { background:var(--dark); text-align:center; padding:10px 10px 8px; border-bottom:2px solid var(--gold); flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:8px; }
+.col-mast { background:var(--cream); text-align:center; padding:10px 10px 8px; border-bottom:3px double var(--dark); flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:8px; }
 .col-mast svg.mast-logo { width:36px; height:36px; flex-shrink:0; }
-.col-mast h1 { font-size:clamp(20px,3.5vw,32px); font-weight:900; color:var(--gold); line-height:1; letter-spacing:1px; font-family:'Noto Sans Devanagari','Mangal',sans-serif; }
+.col-mast h1 { font-size:clamp(20px,3.5vw,32px); font-weight:900; color:var(--dark); line-height:1; letter-spacing:-1px; font-family:'Noto Sans Devanagari','Mangal',sans-serif; }
 .col-ibar { display:flex; justify-content:space-between; align-items:center; padding:2px 10px; border-bottom:1.5px solid var(--dark); background:var(--dark); flex-shrink:0; }
 .col-ibar span { font-size:8px; font-weight:700; color:var(--cream); font-family:'Source Sans 3',sans-serif; }
 .col-ibar .it { font-weight:800; color:var(--gold); letter-spacing:.8px; font-family:'Playfair Display',serif; font-size:9px; display:flex; align-items:center; gap:3px; }
@@ -128,6 +128,30 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .dlbtn.sec-btn:hover { border-color:var(--gold); color:var(--gold); }
 .dlbtn.wa { background:#25D366; color:#fff; }
 .dlbtn.wa:hover { background:#1ebe5a; }
+
+/* Edit toolbar */
+.edit-bar { width:100%; max-width:960px; background:#0f172a; border:1.5px solid #1e293b; border-radius:8px; padding:10px 12px; margin-top:6px; }
+.edit-bar .eb-title { color:#475569; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:8px; }
+.edit-bar .eb-row { display:flex; gap:6px; flex-wrap:wrap; }
+.edit-bar .eb-btn { background:transparent; border:1.5px solid #1e293b; color:#94a3b8; border-radius:6px; padding:7px 12px; font-size:11px; font-weight:600; cursor:pointer; font-family:'Source Sans 3',sans-serif; transition:all .15s; }
+.edit-bar .eb-btn:hover { border-color:#f59e0b; color:#f59e0b; }
+.edit-bar .eb-btn.active { border-color:#f59e0b; background:rgba(245,158,11,.1); color:#f59e0b; }
+.edit-bar .eb-btn.img-btn { border-color:#1d9bf0; color:#1d9bf0; }
+.edit-bar .eb-btn.img-btn:hover { background:rgba(29,155,240,.1); }
+.img-insert-panel { display:none; margin-top:8px; padding:8px; background:#090d14; border-radius:6px; border:1px solid #1e293b; }
+.img-insert-panel.show { display:block; }
+.img-insert-panel .irow { display:flex; gap:6px; align-items:center; margin-bottom:6px; }
+.img-insert-panel input[type="text"] { flex:1; background:#0d1117; border:1px solid #1e293b; border-radius:4px; padding:6px 8px; color:#e2e8f0; font-size:11px; font-family:'Source Sans 3',sans-serif; outline:none; }
+.img-insert-panel input[type="text"]:focus { border-color:#f59e0b; }
+.img-insert-panel .irow button { padding:6px 12px; border-radius:4px; border:none; font-weight:700; font-size:10px; cursor:pointer; font-family:'Source Sans 3',sans-serif; }
+.img-insert-panel .irow .ai-img-btn { background:#f59e0b; color:#1a1a2e; }
+.img-insert-panel .irow .upload-img-btn { background:#334155; color:#e2e8f0; }
+
+/* Editable state */
+.col-text[contenteditable="true"], .col-sidebar-text[contenteditable="true"], .col-headline[contenteditable="true"], .col-subheadline[contenteditable="true"], .col-pullquote[contenteditable="true"] {
+  outline:2px dashed rgba(245,158,11,.3); outline-offset:2px; cursor:text;
+}
+.col-text[contenteditable="true"]:focus, .col-sidebar-text[contenteditable="true"]:focus, .col-headline[contenteditable="true"]:focus { outline-color:#f59e0b; }
 
 /* Empty */
 .empty { width:100%; max-width:960px; background:rgba(13,17,23,.7); border:2px dashed #1e293b; border-radius:12px; padding:52px 32px; text-align:center; }
@@ -648,9 +672,9 @@ function renderColumn() {
     <div class="col-np fadein" id="colNp">
       <div class="col-mast">
         <svg class="mast-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="40" cy="50" r="22" stroke="#f59e0b" stroke-width="2.5" fill="none"/>
-          <circle cx="40" cy="50" r="5" fill="#f59e0b"/>
-          <g stroke="#f59e0b" stroke-width="1.2">
+          <circle cx="40" cy="50" r="22" stroke="#1a1a2e" stroke-width="2.5" fill="none"/>
+          <circle cx="40" cy="50" r="5" fill="#1a1a2e"/>
+          <g stroke="#1a1a2e" stroke-width="1.2">
             <line x1="40" y1="28" x2="40" y2="72"/>
             <line x1="18" y1="50" x2="62" y2="50"/>
             <line x1="24.4" y1="34.4" x2="55.6" y2="65.6"/>
@@ -704,8 +728,25 @@ function renderColumn() {
     </div>
     <div class="dlrow">
       <button class="dlbtn" onclick="dlPNG()">⬇ Download PNG</button>
-      <button class="dlbtn wa" onclick="shareWhatsApp()">📲 Share on WhatsApp</button>
+      <button class="dlbtn wa" onclick="shareWhatsApp()">📲 WhatsApp</button>
       <button class="dlbtn sec-btn" onclick="generateColumn()">↺ Regenerate</button>
+    </div>
+    <div class="edit-bar">
+      <div class="eb-title">Edit & Enhance</div>
+      <div class="eb-row">
+        <button class="eb-btn" id="editToggle" onclick="toggleEdit()">✏️ Edit Text</button>
+        <button class="eb-btn img-btn" id="imgToggle" onclick="toggleImgPanel()">🖼️ Add Image</button>
+      </div>
+      <div class="img-insert-panel" id="imgPanel">
+        <div class="irow">
+          <input type="text" id="imgPrompt" placeholder="Describe image to generate with AI..."/>
+          <button class="ai-img-btn" onclick="insertAIImage()">🤖 Generate</button>
+        </div>
+        <div class="irow">
+          <input type="file" id="imgUpload" accept="image/*" style="font-size:10px;color:#94a3b8;" onchange="insertUploadImage(event)"/>
+        </div>
+        <div style="color:#475569;font-size:9px;margin-top:4px;">Image will be added below the article in the sidebar column.</div>
+      </div>
     </div>`;
 }
 
@@ -753,6 +794,73 @@ async function shareWhatsApp() {
   // Fallback: open WhatsApp with text
   const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
+}
+
+// ── EDIT TEXT ────────────────────────────────────────────────────────────────
+let editMode = false;
+function toggleEdit() {
+  editMode = !editMode;
+  const btn = document.getElementById('editToggle');
+  btn.classList.toggle('active', editMode);
+  btn.textContent = editMode ? '✅ Done Editing' : '✏️ Edit Text';
+
+  const editables = document.querySelectorAll('.col-headline, .col-subheadline, .col-text, .col-sidebar-text, .col-pullquote');
+  editables.forEach(el => {
+    if (editMode) {
+      el.setAttribute('contenteditable', 'true');
+    } else {
+      el.removeAttribute('contenteditable');
+    }
+  });
+}
+
+// ── ADD IMAGE ────────────────────────────────────────────────────────────────
+function toggleImgPanel() {
+  const panel = document.getElementById('imgPanel');
+  const btn = document.getElementById('imgToggle');
+  const show = !panel.classList.contains('show');
+  panel.classList.toggle('show', show);
+  btn.classList.toggle('active', show);
+}
+
+function insertImageToArticle(src, caption) {
+  const sidebar = document.querySelector('.col-sidebar-text');
+  if (!sidebar) { alert('Generate an article first.'); return; }
+  const imgHTML = document.createElement('div');
+  imgHTML.style.cssText = 'margin:6px 0;border:1px solid #c4b89a;';
+  imgHTML.innerHTML = `<img src="${src}" style="width:100%;display:block;" alt="illustration"/>`;
+  sidebar.parentNode.insertBefore(imgHTML, sidebar);
+  if (caption) {
+    const capEl = document.createElement('div');
+    capEl.className = 'col-caption';
+    capEl.textContent = caption;
+    sidebar.parentNode.insertBefore(capEl, sidebar);
+  }
+}
+
+async function insertAIImage() {
+  const prompt = document.getElementById('imgPrompt').value.trim();
+  if (!prompt) { alert('Please describe the image to generate.'); return; }
+  const btn = document.querySelector('.ai-img-btn');
+  btn.textContent = '⏳...'; btn.disabled = true;
+  try {
+    const imgSrc = prov === 'openai' ? await oaiImg(prompt) : await gemImg(prompt);
+    insertImageToArticle(imgSrc, prompt.slice(0, 60));
+    document.getElementById('imgPrompt').value = '';
+  } catch(e) {
+    alert('Image generation failed: ' + e.message);
+  }
+  btn.textContent = '🤖 Generate'; btn.disabled = false;
+}
+
+function insertUploadImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    insertImageToArticle(ev.target.result, file.name.replace(/\.[^.]+$/, ''));
+  };
+  reader.readAsDataURL(file);
 }
 </script>
 </body>
