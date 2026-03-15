@@ -914,8 +914,9 @@ function renderColumn() {
 
   const layoutClass = isHindi ? 'hindi-layout' : '';
 
-  // Build pages — if many paragraphs, split across multiple newspaper pages
-  const PARAS_PER_PAGE = 8; // ~8 paragraphs per page (both columns combined)
+  // Build pages — adjust paragraphs per page based on article length
+  // Longer articles have bigger paragraphs, so fewer fit in 16:9 frame
+  const PARAS_PER_PAGE = articleLength === 'xlong' ? 5 : articleLength === 'long' ? 6 : 8;
   const totalParas = paras.length;
   const pageCount = Math.max(1, Math.ceil(totalParas / PARAS_PER_PAGE));
 
