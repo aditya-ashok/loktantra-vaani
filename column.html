@@ -1195,24 +1195,19 @@ function reflowPages() {
   const textCls = lang === 'en' ? ' en-text' : '';
 
   // Collect overflow paragraphs from BOTH columns
+  // Strategy: clone the page off-screen with no overflow:hidden, measure, find what fits
   function getOverflowParas(page) {
     const overflow = [];
-    // Temporarily allow overflow measurement
-    const contentDiv = page.querySelector('.col-content');
-    page.style.overflow = 'visible';
-    if (contentDiv) contentDiv.style.overflow = 'visible';
-
-    // Get the max allowed height from aspect-ratio (16:9)
-    const pageW = page.offsetWidth;
-    const maxH = pageW * 9 / 16;
-    // Subtract mast + ibar + footer heights
+    // Get the rendered page height (from 16:9 aspect ratio)
+    const pageH = page.getBoundingClientRect().height;
+    // Get fixed elements height
     const mast = page.querySelector('.col-mast');
     const ibar = page.querySelector('.col-ibar');
     const foot = page.querySelector('.col-foot');
     const about = page.querySelector('.col-about-author');
-    const usedH = (mast ? mast.offsetHeight : 0) + (ibar ? ibar.offsetHeight : 0) +
-                  (foot ? foot.offsetHeight : 0) + (about ? about.offsetHeight : 0) + 4;
-    const availH = maxH - usedH;
+    const fixedH = (mast ? mast.offsetHeight : 0) + (ibar ? ibar.offsetHeight : 0) +
+                   (foot ? foot.offsetHeight : 0) + (about ? about.offsetHeight : 0) + 8;
+    const availH = pageH - fixedH;
 
     ['col-main','col-sidebar'].forEach(cls => {
       const col = page.querySelector('.' + cls);
@@ -1220,17 +1215,29 @@ function reflowPages() {
       const textDiv = col.querySelector('.col-text, .col-sidebar-text');
       if (!textDiv) return;
       const allP = Array.from(textDiv.querySelectorAll('p[data-pi]'));
-      // Remove paragraphs from bottom until column fits in available height
+      if (!allP.length) return;
+
+      // Measure total content height needed by summing paragraph positions
+      // Use the last paragraph's bottom relative to column top
+      const colRect = col.getBoundingClientRect();
+      const lastP = allP[allP.length - 1];
+      const lastPRect = lastP.getBoundingClientRect();
+      const totalNeeded = lastPRect.bottom - colRect.top;
+
+      if (totalNeeded <= availH) return; // fits fine
+
+      // Remove paragraphs from bottom until it fits
       for (let i = allP.length - 1; i >= 0; i--) {
-        if (col.scrollHeight <= availH) break;
         overflow.unshift({idx: parseInt(allP[i].dataset.pi), text: allP[i].innerHTML});
         allP[i].remove();
+        // Re-check after removal
+        const remaining = Array.from(textDiv.querySelectorAll('p[data-pi]'));
+        if (!remaining.length) break;
+        const newLast = remaining[remaining.length - 1];
+        const newBottom = newLast.getBoundingClientRect().bottom - colRect.top;
+        if (newBottom <= availH) break;
       }
     });
-
-    // Restore overflow hidden
-    page.style.overflow = 'hidden';
-    if (contentDiv) contentDiv.style.overflow = 'hidden';
 
     return overflow.sort((a,b) => a.idx - b.idx);
   }
