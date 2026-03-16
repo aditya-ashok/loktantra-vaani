@@ -1197,19 +1197,41 @@ function reflowPages() {
   // Collect overflow paragraphs from BOTH columns
   function getOverflowParas(page) {
     const overflow = [];
+    // Temporarily allow overflow measurement
+    const contentDiv = page.querySelector('.col-content');
+    page.style.overflow = 'visible';
+    if (contentDiv) contentDiv.style.overflow = 'visible';
+
+    // Get the max allowed height from aspect-ratio (16:9)
+    const pageW = page.offsetWidth;
+    const maxH = pageW * 9 / 16;
+    // Subtract mast + ibar + footer heights
+    const mast = page.querySelector('.col-mast');
+    const ibar = page.querySelector('.col-ibar');
+    const foot = page.querySelector('.col-foot');
+    const about = page.querySelector('.col-about-author');
+    const usedH = (mast ? mast.offsetHeight : 0) + (ibar ? ibar.offsetHeight : 0) +
+                  (foot ? foot.offsetHeight : 0) + (about ? about.offsetHeight : 0) + 4;
+    const availH = maxH - usedH;
+
     ['col-main','col-sidebar'].forEach(cls => {
       const col = page.querySelector('.' + cls);
       if (!col) return;
       const textDiv = col.querySelector('.col-text, .col-sidebar-text');
       if (!textDiv) return;
       const allP = Array.from(textDiv.querySelectorAll('p[data-pi]'));
-      // Remove paragraphs from bottom until column no longer overflows
+      // Remove paragraphs from bottom until column fits in available height
       for (let i = allP.length - 1; i >= 0; i--) {
-        if (col.scrollHeight <= col.clientHeight + 4) break;
+        if (col.scrollHeight <= availH) break;
         overflow.unshift({idx: parseInt(allP[i].dataset.pi), text: allP[i].innerHTML});
         allP[i].remove();
       }
     });
+
+    // Restore overflow hidden
+    page.style.overflow = 'hidden';
+    if (contentDiv) contentDiv.style.overflow = 'hidden';
+
     return overflow.sort((a,b) => a.idx - b.idx);
   }
 
