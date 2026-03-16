@@ -122,6 +122,15 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .col-sidebar-text { font-family:'Lora','Noto Sans Devanagari',Georgia,serif; font-size:7.5px; line-height:1.4; color:var(--text); text-align:justify; hyphens:auto; }
 .col-sidebar-text p { margin-bottom:2px; text-indent:.6em; }
 
+/* Infographic box */
+.col-infographic { border:1.5px solid var(--dark); margin:4px 0; padding:4px 6px; background:rgba(245,158,11,.04); }
+.col-infographic .info-title { font-family:'Source Sans 3',sans-serif; font-size:6.5px; color:var(--brown); text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:3px; border-bottom:1px solid var(--lb); padding-bottom:2px; }
+.col-infographic .info-items { display:flex; flex-direction:column; gap:3px; }
+.col-infographic .info-item { display:flex; align-items:center; gap:4px; }
+.col-infographic .info-icon { font-size:10px; width:16px; text-align:center; flex-shrink:0; }
+.col-infographic .info-val { font-family:'Playfair Display',serif; font-size:10px; font-weight:900; color:var(--dark); line-height:1; flex-shrink:0; }
+.col-infographic .info-label { font-family:'Source Sans 3','Noto Sans Devanagari',sans-serif; font-size:6.5px; color:var(--brown); line-height:1.2; }
+
 /* About Author box */
 .col-about-author { border-top:1.5px solid var(--dark); padding:3px 10px; background:rgba(245,158,11,.04); flex-shrink:0; }
 .col-about-author .about-label { font-family:'Source Sans 3',sans-serif; font-size:7px; color:var(--brown); text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:2px; }
@@ -911,11 +920,18 @@ Return ONLY valid JSON (no markdown, no extra text):
 ${lengthConfig.paraGuide}
   ],
   "pullQuote": "one powerful sentence that deserves to stand out, max 20 words",
+  "infographic": [
+    {"label": "short stat label (3-5 words)", "value": "number or short value", "icon": "single emoji"},
+    {"label": "another stat", "value": "value", "icon": "emoji"},
+    {"label": "third stat", "value": "value", "icon": "emoji"}
+  ],
   "imagePrompt": "vivid editorial illustration description — symbolic, dramatic lighting, Indian context",
   "caption": "short illustration caption, 6-10 words"${isXPost ? `,
   "xAuthorName": "real full name of the X/Twitter account owner (REQUIRED)",
   "xAuthorDesig": "their official designation or title (REQUIRED)"` : ''}
-}`;
+}
+
+INFOGRAPHIC: Include 3-4 real, factual data points relevant to the article topic. Use REAL statistics (population, budget, percentages, rankings, dates). Each item needs a short label, a value (number/percentage/year), and a relevant emoji icon.`;
 
   let txt = '';
   if (prov === 'gemini') {
@@ -979,7 +995,8 @@ function renderColumn() {
   const hasPhotos = articlePhotos.length > 0;
   const hasPullQuote = !!columnData.pullQuote;
   // Sidebar has images + pull quote, so give more text to main column
-  const sidebarExtraItems = (hasHero ? 2 : 0) + (hasPullQuote ? 1 : 0) + articlePhotos.length;
+  const hasInfoGraphic = (columnData.infographic || []).length > 0;
+  const sidebarExtraItems = (hasHero ? 2 : 0) + (hasPullQuote ? 1 : 0) + (hasInfoGraphic ? 1 : 0) + articlePhotos.length;
   // Give main ~60% of paragraphs if sidebar has images, else 50/50
   const mainRatio = sidebarExtraItems > 1 ? 0.65 : 0.5;
   const splitAt = Math.max(1, Math.round(paras.length * mainRatio));
@@ -996,6 +1013,19 @@ function renderColumn() {
   const PARAS_PER_PAGE = articleLength === 'xlong' ? 10 : articleLength === 'long' ? 9 : 20;
   const totalParas = paras.length;
   const pageCount = Math.max(1, Math.ceil(totalParas / PARAS_PER_PAGE));
+
+  // Build infographic HTML
+  const infoItems = columnData.infographic || [];
+  const infographicHTML = infoItems.length ? `<div class="col-infographic">
+    <div class="info-title">${isHindi ? 'प्रमुख आँकड़े' : 'KEY FACTS'}</div>
+    <div class="info-items">
+      ${infoItems.map(it => `<div class="info-item">
+        <span class="info-icon">${it.icon || '📊'}</span>
+        <span class="info-val">${it.value}</span>
+        <span class="info-label">${it.label}</span>
+      </div>`).join('')}
+    </div>
+  </div>` : '';
 
   let pagesHTML = '';
   for (let pg = 0; pg < pageCount; pg++) {
@@ -1111,6 +1141,7 @@ function renderColumn() {
         <div class="col-sidebar">
           ${pgHeroHTML}
           ${pgPullHTML}
+          ${pg === 0 ? infographicHTML : ''}
           ${pgPhotosHTML}
           <div class="col-sidebar-text">
             ${pgSideBody}
@@ -1162,6 +1193,33 @@ function renderColumn() {
         <div style="color:#475569;font-size:9px;margin-top:4px;">Image will be added below the article in the sidebar column.</div>
       </div>
     </div>`;
+
+  // Auto-fit: shrink text if content overflows the 16:9 page
+  requestAnimationFrame(() => autoFitPages());
+}
+
+function autoFitPages() {
+  document.querySelectorAll('#colNpWrap .col-np').forEach(page => {
+    const content = page.querySelector('.col-content');
+    if (!content) return;
+    const mainText = page.querySelector('.col-text');
+    const sideText = page.querySelector('.col-sidebar-text');
+    let fontSize = 7.5;
+    const minFont = 5.5;
+    let attempts = 0;
+    while (attempts < 10 && fontSize > minFont) {
+      // Check if either column overflows
+      const mainCol = page.querySelector('.col-main');
+      const sideCol = page.querySelector('.col-sidebar');
+      const overflows = (mainCol && mainCol.scrollHeight > mainCol.clientHeight + 2) ||
+                        (sideCol && sideCol.scrollHeight > sideCol.clientHeight + 2);
+      if (!overflows) break;
+      fontSize -= 0.3;
+      if (mainText) mainText.style.fontSize = fontSize + 'px';
+      if (sideText) sideText.style.fontSize = fontSize + 'px';
+      attempts++;
+    }
+  });
 }
 
 async function dlPNG() {
