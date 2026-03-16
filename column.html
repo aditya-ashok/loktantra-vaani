@@ -131,6 +131,14 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .col-infographic .info-val { font-family:'Playfair Display',serif; font-size:10px; font-weight:900; color:var(--dark); line-height:1; flex-shrink:0; }
 .col-infographic .info-label { font-family:'Source Sans 3','Noto Sans Devanagari',sans-serif; font-size:6.5px; color:var(--brown); line-height:1.2; }
 
+/* Ad box */
+.col-ad { border:1.5px solid var(--lb); margin:4px 0; padding:6px 8px; background:rgba(245,158,11,.03); text-align:center; }
+.col-ad .ad-label { font-family:'Source Sans 3',sans-serif; font-size:5px; color:var(--brown); text-transform:uppercase; letter-spacing:2px; font-weight:700; margin-bottom:3px; opacity:.6; }
+.col-ad .ad-brand { font-family:'Noto Sans Devanagari','Playfair Display',serif; font-size:14px; font-weight:900; color:var(--dark); line-height:1.1; }
+.col-ad .ad-tagline { font-family:'Lora','Noto Sans Devanagari',Georgia,serif; font-size:7px; font-style:italic; color:var(--brown); margin-top:2px; }
+.col-ad .ad-url { font-family:'Source Sans 3',sans-serif; font-size:6px; color:var(--db); margin-top:3px; font-weight:700; letter-spacing:.5px; }
+.col-ad .ad-line { width:30px; height:1.5px; background:var(--gold); margin:3px auto; }
+
 /* About Author box */
 .col-about-author { border-top:1.5px solid var(--dark); padding:3px 10px; background:rgba(245,158,11,.04); flex-shrink:0; }
 .col-about-author .about-label { font-family:'Source Sans 3',sans-serif; font-size:7px; color:var(--brown); text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:2px; }
@@ -363,6 +371,15 @@ textarea.cinput { resize:vertical; min-height:60px; }
     </div>
   </div>
 
+  <!-- Ad Toggle -->
+  <div class="sec" style="padding:8px 16px">
+    <div class="slabel">Advertisement</div>
+    <div class="row2">
+      <button class="pvbtn on" id="ad-on" onclick="setAd(true)">Show Ad</button>
+      <button class="pvbtn" id="ad-off" onclick="setAd(false)">No Ad</button>
+    </div>
+  </div>
+
   <!-- Article Photos (Optional) -->
   <div class="sec">
     <div class="slabel">Article Photos (Optional)</div>
@@ -536,6 +553,13 @@ function setLength(l) {
 }
 
 let paperTheme = 'classic';
+let showAd = true;
+function setAd(v) {
+  showAd = v;
+  document.getElementById('ad-on').classList.toggle('on', v);
+  document.getElementById('ad-off').classList.toggle('on', !v);
+  if (columnData) renderColumn();
+}
 function setTheme(t) {
   paperTheme = t;
   document.getElementById('th-classic').classList.toggle('on', t==='classic');
@@ -989,32 +1013,12 @@ function renderColumn() {
     <div class="col-caption">Generating illustration...</div>`;
   }
 
-  // Smart paragraph splitting — account for sidebar images taking space
+  // All paragraphs
   const paras = columnData.paragraphs || [];
-  const hasHero = !!heroImg || true; // hero always present (loading or loaded)
-  const hasPhotos = articlePhotos.length > 0;
-  const hasPullQuote = !!columnData.pullQuote;
-  // Sidebar has images + pull quote, so give more text to main column
-  const hasInfoGraphic = (columnData.infographic || []).length > 0;
-  const sidebarExtraItems = (hasHero ? 2 : 0) + (hasPullQuote ? 1 : 0) + (hasInfoGraphic ? 1 : 0) + articlePhotos.length;
-  // Give main ~60% of paragraphs if sidebar has images, else 50/50
-  const mainRatio = sidebarExtraItems > 1 ? 0.65 : 0.5;
-  const splitAt = Math.max(1, Math.round(paras.length * mainRatio));
-  const mainParas = paras.slice(0, splitAt);
-  const sideParas = paras.slice(splitAt);
-
-  let mainBody = mainParas.map(p => `<p>${p}</p>`).join('');
-  let sideBody = sideParas.map(p => `<p>${p}</p>`).join('');
-
   const layoutClass = isHindi ? 'hindi-layout' : '';
 
-  // Build pages — 1500w fits in 1 page, scale up from there
-  // Medium (9 paras) = 1 page, Long (14 paras) = 2 pages, XLong (19 paras) = 2 pages
-  const PARAS_PER_PAGE = articleLength === 'xlong' ? 10 : articleLength === 'long' ? 9 : 20;
-  const totalParas = paras.length;
-  const pageCount = Math.max(1, Math.ceil(totalParas / PARAS_PER_PAGE));
-
-  // Build infographic HTML
+  // Sidebar extras
+  const hasPullQuote = !!columnData.pullQuote;
   const infoItems = columnData.infographic || [];
   const infographicHTML = infoItems.length ? `<div class="col-infographic">
     <div class="info-title">${isHindi ? 'प्रमुख आँकड़े' : 'KEY FACTS'}</div>
@@ -1026,135 +1030,116 @@ function renderColumn() {
       </div>`).join('')}
     </div>
   </div>` : '';
+  const pullHTML = hasPullQuote ? `<div class="col-pullquote"><p>${columnData.pullQuote}</p></div>` : '';
+  const photosHTML = articlePhotos.map((src, i) => `<div style="margin:6px 0"><img src="${src}" style="width:100%;display:block;border:1px solid #c4b89a" alt="photo ${i+1}"/></div>`).join('');
 
-  let pagesHTML = '';
-  for (let pg = 0; pg < pageCount; pg++) {
-    const pgStart = pg * PARAS_PER_PAGE;
-    const pgEnd = Math.min(pgStart + PARAS_PER_PAGE, totalParas);
-    const pgParas = paras.slice(pgStart, pgEnd);
+  // Ad HTML
+  const adHTML = showAd ? `<div class="col-ad">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-line"></div>
+    <div class="ad-brand">लोकतंत्र वाणी</div>
+    <div class="ad-tagline">${isHindi ? 'सत्य • निष्पक्षता • जनहित' : 'Truth • Integrity • Public Interest'}</div>
+    <div class="ad-line"></div>
+    <div class="ad-url">loktantra-vaani.vercel.app</div>
+  </div>` : '';
 
-    // For first page: use calculated split with hero/images in sidebar
-    // For subsequent pages: even 50/50 split, no hero/images
-    let pgMainParas, pgSideParas, pgHeroHTML, pgPullHTML, pgPhotosHTML;
+  // Give main column more text when sidebar has images/infographic
+  const sidebarWeight = 2 + (hasPullQuote ? 1 : 0) + (infoItems.length ? 1 : 0) + articlePhotos.length;
+  const mainRatio = sidebarWeight > 2 ? 0.65 : 0.5;
 
-    if (pg === 0) {
-      const pgSplit = Math.max(1, Math.round(pgParas.length * mainRatio));
-      pgMainParas = pgParas.slice(0, pgSplit);
-      pgSideParas = pgParas.slice(pgSplit);
-      pgHeroHTML = heroHTML;
-      pgPullHTML = columnData.pullQuote ? `<div class="col-pullquote"><p>${columnData.pullQuote}</p></div>` : '';
-      pgPhotosHTML = articlePhotos.map((src, i) => `<div style="margin:6px 0"><img src="${src}" style="width:100%;display:block;border:1px solid #c4b89a" alt="photo ${i+1}"/></div>`).join('');
+  // Build ALL paragraphs tagged with indices
+  const allMainBody = paras.map((p,i) => `<p data-pi="${i}">${p}</p>`).join('');
+  const splitAt = Math.max(1, Math.round(paras.length * mainRatio));
+  const mainBody = paras.slice(0, splitAt).map((p,i) => `<p data-pi="${i}">${p}</p>`).join('');
+  const sideBody = paras.slice(splitAt).map((p,i) => `<p data-pi="${splitAt+i}">${p}</p>`).join('');
+
+  // Masthead SVG
+  const mastSVG = `<svg class="mast-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="50" r="22" stroke="#1a1a2e" stroke-width="2.5" fill="none"/>
+    <circle cx="40" cy="50" r="5" fill="#1a1a2e"/>
+    <g stroke="#1a1a2e" stroke-width="1.2">
+      <line x1="40" y1="28" x2="40" y2="72"/><line x1="18" y1="50" x2="62" y2="50"/>
+      <line x1="24.4" y1="34.4" x2="55.6" y2="65.6"/><line x1="55.6" y1="34.4" x2="24.4" y2="65.6"/>
+      <line x1="40" y1="28" x2="40" y2="72" transform="rotate(22.5 40 50)"/>
+      <line x1="40" y1="28" x2="40" y2="72" transform="rotate(67.5 40 50)"/>
+      <line x1="40" y1="28" x2="40" y2="72" transform="rotate(112.5 40 50)"/>
+      <line x1="40" y1="28" x2="40" y2="72" transform="rotate(157.5 40 50)"/>
+    </g>
+    <path d="M66 38 Q76 50 66 62" stroke="#FF9933" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M72 32 Q85 50 72 68" stroke="#e8d9c0" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
+    <path d="M78 26 Q94 50 78 74" stroke="#138808" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".5"/>
+  </svg>`;
+  const footerHTML = `<div class="col-foot">
+    <div class="fc br">✉ enquiry@kautilya.world</div>
+    <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
+    <div class="fc br2">🌐 kautilya.world</div>
+  </div>`;
+
+  // About Author HTML
+  let aboutAuthorHTML = '';
+  if (authorAbout) {
+    let aboutImgEl;
+    if (authorPhoto) {
+      aboutImgEl = `<img class="about-img" src="${authorPhoto}" alt="${columnData.authorName}"/>`;
     } else {
-      const pgSplit = Math.ceil(pgParas.length / 2);
-      pgMainParas = pgParas.slice(0, pgSplit);
-      pgSideParas = pgParas.slice(pgSplit);
-      pgHeroHTML = '';
-      pgPullHTML = '';
-      pgPhotosHTML = '';
+      const ini = columnData.authorName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      aboutImgEl = `<div class="about-img initials-sm">${ini}</div>`;
     }
-
-    const pgMainBody = pgMainParas.map(p => `<p>${p}</p>`).join('');
-    const pgSideBody = pgSideParas.map(p => `<p>${p}</p>`).join('');
-
-    const mastHTML = pg === 0 ? `<div class="col-mast">
-        <svg class="mast-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="40" cy="50" r="22" stroke="#1a1a2e" stroke-width="2.5" fill="none"/>
-          <circle cx="40" cy="50" r="5" fill="#1a1a2e"/>
-          <g stroke="#1a1a2e" stroke-width="1.2">
-            <line x1="40" y1="28" x2="40" y2="72"/>
-            <line x1="18" y1="50" x2="62" y2="50"/>
-            <line x1="24.4" y1="34.4" x2="55.6" y2="65.6"/>
-            <line x1="55.6" y1="34.4" x2="24.4" y2="65.6"/>
-            <line x1="40" y1="28" x2="40" y2="72" transform="rotate(22.5 40 50)"/>
-            <line x1="40" y1="28" x2="40" y2="72" transform="rotate(67.5 40 50)"/>
-            <line x1="40" y1="28" x2="40" y2="72" transform="rotate(112.5 40 50)"/>
-            <line x1="40" y1="28" x2="40" y2="72" transform="rotate(157.5 40 50)"/>
-          </g>
-          <path d="M66 38 Q76 50 66 62" stroke="#FF9933" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path d="M72 32 Q85 50 72 68" stroke="#e8d9c0" stroke-width="2" fill="none" stroke-linecap="round" opacity=".6"/>
-          <path d="M78 26 Q94 50 78 74" stroke="#138808" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".5"/>
-        </svg>
-        <h1>लोकतंत्र वाणी</h1>
-      </div>
-      <div class="col-ibar">
-        <span>Bharat Edition</span>
-        <span class="it">Kautilya World</span>
-        <span>${today}</span>
-      </div>` : `<div class="col-ibar" style="border-top:1.5px solid var(--lb)">
-        <span>लोकतंत्र वाणी</span>
-        <span class="it">Page ${pg + 1}</span>
-        <span>${today}</span>
-      </div>`;
-
-    const headlineBlock = pg === 0 ? `
-          <div class="col-section-label">${sectionLabel}</div>
-          <div class="col-section-rule"></div>
-          <h2 class="col-headline">${columnData.headline}</h2>
-          <div class="col-subheadline">${columnData.subheadline || ''}</div>
-          <div class="col-byline">
-            ${authorImgHTML}
-            <div class="col-author-info">
-              <span class="col-author-name">${columnData.authorName}</span>
-              <span class="col-author-desig">${columnData.authorDesig}</span>
-            </div>
-          </div>` : `<div style="font-family:'Source Sans 3','Noto Sans Devanagari',sans-serif;font-size:7px;color:var(--brown);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">${isHindi ? 'जारी...' : 'CONTINUED'}</div>`;
-
-    // About Author box — only on last page
-    let aboutHTML = '';
-    if (pg === pageCount - 1 && authorAbout) {
-      let aboutImgHTML;
-      if (authorPhoto) {
-        aboutImgHTML = `<img class="about-img" src="${authorPhoto}" alt="${columnData.authorName}"/>`;
-      } else {
-        const ini = columnData.authorName.split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
-        aboutImgHTML = `<div class="about-img initials-sm">${ini}</div>`;
-      }
-      aboutHTML = `<div class="col-about-author">
-        <div class="about-label">${isHindi ? 'लेखक के बारे में' : 'About The Author'}</div>
-        <div class="about-content">
-          ${aboutImgHTML}
-          <div class="about-text">
-            <div class="about-name">${columnData.authorName}</div>
-            <div class="about-desig">${columnData.authorDesig}</div>
-            <div class="about-bio">${authorAbout}</div>
-          </div>
-        </div>
-      </div>`;
-    }
-
-    const footerHTML = `<div class="col-foot">
-        <div class="fc br">✉ enquiry@kautilya.world</div>
-        <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
-        <div class="fc br2">🌐 kautilya.world</div>
-      </div>`;
-
-    pagesHTML += `
-    <div class="col-np fadein${pg > 0 ? ' col-page-next' : ''}" id="colNp${pg === 0 ? '' : pg}">
-      ${mastHTML}
-      <div class="col-content ${layoutClass}">
-        <div class="col-main">
-          ${headlineBlock}
-          <div class="col-text${lang === 'en' ? ' en-text' : ''}">
-            ${pgMainBody}
-          </div>
-        </div>
-        <div class="col-sidebar">
-          ${pgHeroHTML}
-          ${pgPullHTML}
-          ${pg === 0 ? infographicHTML : ''}
-          ${pgPhotosHTML}
-          <div class="col-sidebar-text">
-            ${pgSideBody}
-          </div>
+    aboutAuthorHTML = `<div class="col-about-author">
+      <div class="about-label">${isHindi ? 'लेखक के बारे में' : 'About The Author'}</div>
+      <div class="about-content">
+        ${aboutImgEl}
+        <div class="about-text">
+          <div class="about-name">${columnData.authorName}</div>
+          <div class="about-desig">${columnData.authorDesig}</div>
+          <div class="about-bio">${authorAbout}</div>
         </div>
       </div>
-      ${aboutHTML}
-      ${footerHTML}
     </div>`;
   }
 
+  // Render page 1 with ALL content
+  const page1HTML = `
+  <div class="col-np fadein" id="colNp">
+    <div class="col-mast">${mastSVG}<h1>लोकतंत्र वाणी</h1></div>
+    <div class="col-ibar">
+      <span>Bharat Edition</span>
+      <span class="it">Kautilya World</span>
+      <span>${today}</span>
+    </div>
+    <div class="col-content ${layoutClass}">
+      <div class="col-main">
+        <div class="col-section-label">${sectionLabel}</div>
+        <div class="col-section-rule"></div>
+        <h2 class="col-headline">${columnData.headline}</h2>
+        <div class="col-subheadline">${columnData.subheadline || ''}</div>
+        <div class="col-byline">
+          ${authorImgHTML}
+          <div class="col-author-info">
+            <span class="col-author-name">${columnData.authorName}</span>
+            <span class="col-author-desig">${columnData.authorDesig}</span>
+          </div>
+        </div>
+        <div class="col-text${lang === 'en' ? ' en-text' : ''}">
+          ${mainBody}
+        </div>
+      </div>
+      <div class="col-sidebar">
+        ${heroHTML}
+        ${pullHTML}
+        ${infographicHTML}
+        ${photosHTML}
+        <div class="col-sidebar-text">
+          ${sideBody}
+        </div>
+      </div>
+    </div>
+    ${aboutAuthorHTML}
+    ${footerHTML}
+  </div>`;
+
   document.getElementById('right').innerHTML = `
-    <div id="colNpWrap">${pagesHTML}</div>
+    <div id="colNpWrap">${page1HTML}</div>
     <div class="dlrow">
       <button class="dlbtn" onclick="dlPNG()">⬇ Download PNG</button>
       <button class="dlbtn wa" onclick="shareWhatsApp()">📲 WhatsApp</button>
@@ -1194,32 +1179,139 @@ function renderColumn() {
       </div>
     </div>`;
 
-  // Auto-fit: shrink text if content overflows the 16:9 page
-  requestAnimationFrame(() => autoFitPages());
+  // Post-render reflow: detect overflow and move excess paragraphs to new pages
+  requestAnimationFrame(() => reflowPages());
 }
 
-function autoFitPages() {
-  document.querySelectorAll('#colNpWrap .col-np').forEach(page => {
-    const content = page.querySelector('.col-content');
-    if (!content) return;
-    const mainText = page.querySelector('.col-text');
-    const sideText = page.querySelector('.col-sidebar-text');
-    let fontSize = 7.5;
-    const minFont = 5.5;
-    let attempts = 0;
-    while (attempts < 10 && fontSize > minFont) {
-      // Check if either column overflows
-      const mainCol = page.querySelector('.col-main');
-      const sideCol = page.querySelector('.col-sidebar');
-      const overflows = (mainCol && mainCol.scrollHeight > mainCol.clientHeight + 2) ||
-                        (sideCol && sideCol.scrollHeight > sideCol.clientHeight + 2);
-      if (!overflows) break;
-      fontSize -= 0.3;
-      if (mainText) mainText.style.fontSize = fontSize + 'px';
-      if (sideText) sideText.style.fontSize = fontSize + 'px';
-      attempts++;
+function reflowPages() {
+  const wrap = document.getElementById('colNpWrap');
+  if (!wrap) return;
+  const page1 = document.getElementById('colNp');
+  if (!page1) return;
+
+  const isHi = lang === 'hi';
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const lc = isHi ? 'hindi-layout' : '';
+  const textCls = lang === 'en' ? ' en-text' : '';
+
+  // Collect overflow paragraphs from BOTH columns
+  function getOverflowParas(page) {
+    const overflow = [];
+    ['col-main','col-sidebar'].forEach(cls => {
+      const col = page.querySelector('.' + cls);
+      if (!col) return;
+      const textDiv = col.querySelector('.col-text, .col-sidebar-text');
+      if (!textDiv) return;
+      const allP = Array.from(textDiv.querySelectorAll('p[data-pi]'));
+      // Remove paragraphs from bottom until column no longer overflows
+      for (let i = allP.length - 1; i >= 0; i--) {
+        if (col.scrollHeight <= col.clientHeight + 4) break;
+        overflow.unshift({idx: parseInt(allP[i].dataset.pi), text: allP[i].innerHTML});
+        allP[i].remove();
+      }
+    });
+    return overflow.sort((a,b) => a.idx - b.idx);
+  }
+
+  // Also move About Author box out temporarily
+  const aboutBox = page1.querySelector('.col-about-author');
+  let aboutHTML = '';
+  if (aboutBox) { aboutHTML = aboutBox.outerHTML; aboutBox.remove(); }
+
+  // Check page1 overflow
+  let overflowed = getOverflowParas(page1);
+
+  // Insert ad in blank space on page 1 if room
+  if (showAd) {
+    const sideCol = page1.querySelector('.col-sidebar');
+    if (sideCol && sideCol.scrollHeight < sideCol.clientHeight - 30) {
+      const adDiv = document.createElement('div');
+      adDiv.innerHTML = `<div class="col-ad">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-line"></div>
+        <div class="ad-brand">लोकतंत्र वाणी</div>
+        <div class="ad-tagline">${isHi ? 'सत्य · निष्पक्षता · जनहित' : 'Truth · Integrity · Public Interest'}</div>
+        <div class="ad-line"></div>
+        <div class="ad-url">loktantra-vaani.vercel.app</div>
+      </div>`;
+      const sideText = sideCol.querySelector('.col-sidebar-text');
+      if (sideText) sideText.after(adDiv.firstElementChild);
+      else sideCol.appendChild(adDiv.firstElementChild);
     }
-  });
+  }
+
+  // Build additional pages from overflow
+  let pgNum = 2;
+  while (overflowed.length > 0) {
+    const split = Math.ceil(overflowed.length / 2);
+    const pgMain = overflowed.slice(0, split);
+    const pgSide = overflowed.slice(split);
+
+    const pgDiv = document.createElement('div');
+    pgDiv.className = 'col-np fadein col-page-next';
+    pgDiv.id = 'colNp' + pgNum;
+    pgDiv.innerHTML = `
+      <div class="col-ibar" style="border-top:1.5px solid var(--lb)">
+        <span>लोकतंत्र वाणी</span>
+        <span class="it">Page ${pgNum}</span>
+        <span>${today}</span>
+      </div>
+      <div class="col-content ${lc}">
+        <div class="col-main">
+          <div style="font-family:'Source Sans 3','Noto Sans Devanagari',sans-serif;font-size:7px;color:var(--brown);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px">${isHi ? 'जारी...' : 'CONTINUED'}</div>
+          <div class="col-text${textCls}">
+            ${pgMain.map(p => `<p data-pi="${p.idx}">${p.text}</p>`).join('')}
+          </div>
+        </div>
+        <div class="col-sidebar">
+          <div class="col-sidebar-text">
+            ${pgSide.map(p => `<p data-pi="${p.idx}">${p.text}</p>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="col-foot">
+        <div class="fc br">✉ enquiry@kautilya.world</div>
+        <div class="fc cr" style="font-family:'Source Sans 3';font-weight:900;letter-spacing:.5px">🪷 Kautilya World</div>
+        <div class="fc br2">🌐 kautilya.world</div>
+      </div>`;
+    wrap.appendChild(pgDiv);
+
+    // Check if this new page also overflows
+    overflowed = getOverflowParas(pgDiv);
+
+    // Add ad to blank space on this page
+    if (showAd) {
+      const sc = pgDiv.querySelector('.col-sidebar');
+      if (sc && sc.scrollHeight < sc.clientHeight - 30) {
+        const ad2 = document.createElement('div');
+        ad2.innerHTML = `<div class="col-ad">
+          <div class="ad-label">Advertisement</div>
+          <div class="ad-line"></div>
+          <div class="ad-brand">लोकतंत्र वाणी</div>
+          <div class="ad-tagline">${isHi ? 'सत्य · निष्पक्षता · जनहित' : 'Truth · Integrity · Public Interest'}</div>
+          <div class="ad-line"></div>
+          <div class="ad-url">loktantra-vaani.vercel.app</div>
+        </div>`;
+        const st = sc.querySelector('.col-sidebar-text');
+        if (st) st.after(ad2.firstElementChild);
+        else sc.appendChild(ad2.firstElementChild);
+      }
+    }
+
+    pgNum++;
+    if (pgNum > 5) break; // safety limit
+  }
+
+  // Add About Author to the last page
+  if (aboutHTML) {
+    const allPages = wrap.querySelectorAll('.col-np');
+    const lastPage = allPages[allPages.length - 1];
+    const foot = lastPage.querySelector('.col-foot');
+    const aboutDiv = document.createElement('div');
+    aboutDiv.innerHTML = aboutHTML;
+    if (foot) foot.before(aboutDiv.firstElementChild);
+    else lastPage.appendChild(aboutDiv.firstElementChild);
+  }
 }
 
 async function dlPNG() {
