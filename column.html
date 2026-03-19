@@ -179,6 +179,18 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .author-edit-panel { display:none; margin-top:8px; padding:8px 0 0; border-top:1px solid #1e293b; }
 .author-edit-panel.show { display:block; }
 .author-edit-panel .irow { display:flex; gap:6px; }
+
+/* History */
+.hist-card { display:flex; gap:8px; padding:6px; border-radius:5px; border:1px solid #1e293b; cursor:pointer; transition:all .15s; align-items:center; }
+.hist-card:hover { background:#0f172a; border-color:#334155; }
+.hist-thumb { width:48px; height:27px; border-radius:3px; object-fit:cover; background:#1e293b; flex-shrink:0; }
+.hist-info { flex:1; min-width:0; }
+.hist-title { font-size:10px; color:#e2e8f0; font-weight:600; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hist-date { font-size:8px; color:#475569; margin-top:1px; }
+.hist-del { background:none; border:none; color:#475569; font-size:12px; cursor:pointer; padding:2px 4px; flex-shrink:0; }
+.hist-del:hover { color:#ef4444; }
+#historyList::-webkit-scrollbar { width:2px; }
+#historyList::-webkit-scrollbar-thumb { background:#1e293b; }
 .img-insert-panel { display:none; margin-top:8px; padding:8px; background:#090d14; border-radius:6px; border:1px solid #1e293b; }
 .img-insert-panel.show { display:block; }
 .img-insert-panel .irow { display:flex; gap:6px; align-items:center; margin-bottom:6px; }
@@ -391,9 +403,16 @@ textarea.cinput { resize:vertical; min-height:60px; }
     <div style="color:#475569;font-size:9px;margin-top:4px">Upload images to include in the article body</div>
   </div>
 
+  <!-- History -->
+  <div class="sec" id="historySec" style="display:none">
+    <div class="slabel" style="display:flex;justify-content:space-between;align-items:center">History <span id="historyCount" style="font-size:8px;color:#334155"></span></div>
+    <div id="historyList" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+  </div>
+
   <!-- Generate -->
   <div class="gsec">
     <button class="gbtn" id="gbtn" onclick="generateColumn()">✍ Generate Newspaper Column</button>
+    <button class="gbtn" id="saveHistBtn" style="display:none;background:#1e293b;color:#94a3b8;font-size:11px;padding:8px;margin-top:6px;box-shadow:none;font-family:'Source Sans 3',sans-serif" onclick="saveToHistory()">💾 Save to History</button>
     <p class="gnote" id="gnote">Enter author details & topic to begin</p>
   </div>
 </div>
@@ -428,6 +447,112 @@ let heroImg = null;     // generated hero image
 let articlePhotos = [];  // user-uploaded article photos (base64)
 let authorAbout = '';    // author bio text
 
+// ── LOCALSTORAGE HELPERS ─────────────────────────────────────────────────────
+function smSave(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch(e){} }
+function smLoad(k,d){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d} }
+
+// ── HISTORY ──────────────────────────────────────────────────────────────────
+const HIST_KEY = 'lv_hist_col', HIST_MAX = 20;
+
+function resizeImg(b64, maxW, q) {
+  return new Promise(r => {
+    if (!b64) { r(null); return; }
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = img.width * s; c.height = img.height * s;
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      r(c.toDataURL('image/jpeg', q));
+    };
+    img.onerror = () => r(null);
+    img.src = b64;
+  });
+}
+
+function getHistory() { return smLoad(HIST_KEY, []); }
+function _saveHist(list) { try { smSave(HIST_KEY, list); } catch(e) { if (list.length > 1) { list.pop(); _saveHist(list); } } }
+
+async function saveToHistory() {
+  if (!columnData) return;
+  const thumb = await resizeImg(heroImg, 150, 0.5);
+  const sHero = await resizeImg(heroImg, 400, 0.6);
+  const sAuthor = await resizeImg(authorPhoto, 100, 0.6);
+  const sPhotos = await Promise.all(articlePhotos.map(p => resizeImg(p, 300, 0.6)));
+  const list = getHistory();
+  list.unshift({
+    id: Date.now(),
+    title: columnData.headline || columnData.authorName || 'Untitled',
+    thumb,
+    ts: new Date().toISOString(),
+    state: { columnData: {...columnData}, authorAbout, lang, section, tone, articleLength, paperTheme },
+    images: { heroImg: sHero, authorPhoto: sAuthor, articlePhotos: sPhotos }
+  });
+  while (list.length > HIST_MAX) list.pop();
+  _saveHist(list);
+  renderHistoryUI();
+  const btn = document.getElementById('saveHistBtn');
+  btn.textContent = '✅ Saved!';
+  setTimeout(() => { btn.textContent = '💾 Save to History'; }, 1500);
+}
+
+function loadFromHistory(id) {
+  const entry = getHistory().find(h => h.id === id);
+  if (!entry) return;
+  columnData = entry.state.columnData;
+  authorAbout = entry.state.authorAbout || '';
+  lang = entry.state.lang || 'en';
+  section = entry.state.section || 'opinion';
+  tone = entry.state.tone || 'nationalist';
+  articleLength = entry.state.articleLength || 'medium';
+  paperTheme = entry.state.paperTheme || 'classic';
+  heroImg = entry.images?.heroImg || null;
+  authorPhoto = entry.images?.authorPhoto || null;
+  articlePhotos = entry.images?.articlePhotos || [];
+  // Update UI toggles
+  document.querySelectorAll('.langbtn').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  document.querySelectorAll('[data-sec]').forEach(b => b.classList.toggle('on', b.dataset.sec === section));
+  document.querySelectorAll('[data-tone]').forEach(b => b.classList.toggle('on', b.dataset.tone === tone));
+  document.querySelectorAll('[data-len]').forEach(b => b.classList.toggle('on', b.dataset.len === articleLength));
+  if (columnData.authorName) document.getElementById('authorName').value = columnData.authorName;
+  if (columnData.authorDesig) document.getElementById('authorDesig').value = columnData.authorDesig;
+  if (authorAbout) { const el = document.getElementById('authorAbout'); if (el) el.value = authorAbout; }
+  // Set theme
+  document.documentElement.classList.toggle('white-theme', paperTheme === 'white');
+  renderColumn();
+  document.getElementById('saveHistBtn').style.display = '';
+  document.getElementById('gbtn').textContent = '↺ Regenerate Column';
+}
+
+function deleteFromHistory(id) {
+  const list = getHistory().filter(h => h.id !== id);
+  _saveHist(list);
+  renderHistoryUI();
+}
+
+function renderHistoryUI() {
+  const list = getHistory();
+  const sec = document.getElementById('historySec');
+  const container = document.getElementById('historyList');
+  const count = document.getElementById('historyCount');
+  if (!list.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  count.textContent = list.length + '/' + HIST_MAX;
+  container.innerHTML = list.map(h => {
+    const d = new Date(h.ts);
+    const ds = d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const timg = h.thumb ? `<img class="hist-thumb" src="${h.thumb}" alt=""/>` : `<div class="hist-thumb"></div>`;
+    return `<div class="hist-card" onclick="loadFromHistory(${h.id})">
+      ${timg}
+      <div class="hist-info">
+        <div class="hist-title">${(h.title||'Untitled').replace(/</g,'&lt;')}</div>
+        <div class="hist-date">${ds}</div>
+      </div>
+      <button class="hist-del" onclick="event.stopPropagation();deleteFromHistory(${h.id})" title="Delete">✕</button>
+    </div>`;
+  }).join('');
+}
+
 const AUTHOR_PRESETS = {
   ashok: {
     name: 'Ashok Kumar Choudhary',
@@ -446,6 +571,9 @@ const AUTHOR_PRESETS = {
     aboutHi: 'IIM मुंबई, IIIT बेंगलुरु और मणिपाल CSE। MNC और सरकारी सलाहकार में 10 वर्षों का अनुभव।'
   }
 };
+
+// Load history on start
+renderHistoryUI();
 
 // Fetch server keys
 const _keyReady = fetch('/api/key').then(r=>r.json()).then(d=>{
@@ -793,6 +921,7 @@ About: ${authorAbout || 'N/A'}`;
     btn.textContent = '↺ Regenerate Column';
     btn.disabled = false;
     note.textContent = 'Column ready! Download or regenerate.';
+    document.getElementById('saveHistBtn').style.display = '';
   } catch(e) {
     console.error('Generation failed:', e);
     btn.textContent = '✍ Generate Newspaper Column';
