@@ -69,6 +69,8 @@ textarea.cinput { resize:vertical; min-height:60px; }
 
 /* ── NEWSPAPER COLUMN ── */
 .col-np { width:100%; max-width:960px; aspect-ratio:16/9; background:var(--cream); border:2px solid var(--dark); box-shadow:0 0 0 4px var(--cream),0 0 0 6px var(--dark),0 16px 48px rgba(0,0,0,.35); position:relative; display:flex; flex-direction:column; overflow:hidden; }
+.col-np.single-page { aspect-ratio:unset; overflow:visible; }
+.col-np.single-page .col-content { overflow:visible; }
 .col-mast { background:var(--cream); text-align:center; padding:6px 10px 5px; border-bottom:3px double var(--dark); flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:6px; }
 .col-mast svg.mast-logo { width:28px; height:28px; flex-shrink:0; }
 .col-mast h1 { font-size:clamp(16px,3vw,26px); font-weight:900; color:var(--dark); line-height:1; letter-spacing:-1px; font-family:'Noto Sans Devanagari','Mangal',sans-serif; }
@@ -383,6 +385,16 @@ textarea.cinput { resize:vertical; min-height:60px; }
     </div>
   </div>
 
+  <!-- Page Layout -->
+  <div class="sec" style="padding:8px 16px">
+    <div class="slabel">Page Layout</div>
+    <div class="row2">
+      <button class="pvbtn on" id="lay-multi" onclick="setLayout('multi')">📄 Multi-Page</button>
+      <button class="pvbtn" id="lay-single" onclick="setLayout('single')">📜 Single Page</button>
+    </div>
+    <div style="color:#475569;font-size:8px;margin-top:3px" id="layoutNote">16:9 ratio · overflows to page 2+</div>
+  </div>
+
   <!-- Ad Toggle -->
   <div class="sec" style="padding:8px 16px">
     <div class="slabel">Advertisement</div>
@@ -682,6 +694,18 @@ function setLength(l) {
 
 let paperTheme = 'classic';
 let showAd = true;
+let pageLayout = 'multi'; // 'multi' = 16:9 multipage, 'single' = fit all on 1 page
+let page2Img = null; // generated image for page 2
+
+function setLayout(v) {
+  pageLayout = v;
+  document.getElementById('lay-multi').classList.toggle('on', v === 'multi');
+  document.getElementById('lay-single').classList.toggle('on', v === 'single');
+  document.getElementById('layoutNote').textContent = v === 'single'
+    ? 'Auto height · entire article on 1 page'
+    : '16:9 ratio · overflows to page 2+';
+  if (columnData) renderColumn();
+}
 function setAd(v) {
   showAd = v;
   document.getElementById('ad-on').classList.toggle('on', v);
@@ -1264,7 +1288,7 @@ function renderColumn() {
 
   // Render page 1 with ALL content
   const page1HTML = `
-  <div class="col-np fadein" id="colNp">
+  <div class="col-np fadein${pageLayout === 'single' ? ' single-page' : ''}" id="colNp">
     <div class="col-mast">${mastSVG}<h1>लोकतंत्र वाणी</h1></div>
     <div class="col-ibar">
       <span>Bharat Edition</span>
@@ -1344,7 +1368,9 @@ function renderColumn() {
     </div>`;
 
   // Post-render reflow: detect overflow and move excess paragraphs to new pages
-  requestAnimationFrame(() => reflowPages());
+  if (pageLayout !== 'single') {
+    requestAnimationFrame(() => reflowPages());
+  }
 }
 
 function reflowPages() {
@@ -1457,7 +1483,7 @@ function reflowPages() {
           </div>
         </div>
         <div class="col-sidebar">
-          ${heroImg ? `<div class="col-hero"><img src="${heroImg}" alt="illustration"/></div>` : ''}
+          <div class="col-hero pg2-hero" id="pg2Hero${pgNum}"><div class="lwrap"><div class="spin"></div></div></div>
           <div class="col-sidebar-text">
             ${pgSide.map(p => `<p data-pi="${p.idx}">${p.text}</p>`).join('')}
           </div>
@@ -1505,6 +1531,33 @@ function reflowPages() {
     aboutDiv.innerHTML = aboutHTML;
     if (foot) foot.before(aboutDiv.firstElementChild);
     else lastPage.appendChild(aboutDiv.firstElementChild);
+  }
+
+  // Generate new contextual images for page 2+ sidebars
+  generatePage2Images();
+}
+
+async function generatePage2Images() {
+  const heroes = document.querySelectorAll('.pg2-hero');
+  if (!heroes.length || !columnData) return;
+  for (const el of heroes) {
+    try {
+      // Build a prompt based on the page's text content
+      const page = el.closest('.col-np');
+      const texts = Array.from(page.querySelectorAll('.col-text p, .col-sidebar-text p')).map(p => p.textContent).join(' ').slice(0, 300);
+      const prompt = `Editorial newspaper illustration for article continuation about: ${texts.slice(0, 200)}. Different perspective from the main image. Bold, symbolic, Indian context.`;
+      const img = prov === 'openai' ? await oaiImg(prompt) : await gemImg(prompt);
+      if (img) {
+        el.innerHTML = `<img src="${img}" alt="illustration" style="width:100%;display:block"/>`;
+      } else {
+        el.innerHTML = heroImg ? `<img src="${heroImg}" alt="illustration" style="width:100%;display:block"/>` : '';
+      }
+    } catch(e) {
+      console.warn('Page 2 image failed, using hero:', e);
+      // Fallback to hero image
+      if (heroImg) el.innerHTML = `<img src="${heroImg}" alt="illustration" style="width:100%;display:block"/>`;
+      else el.innerHTML = '';
+    }
   }
 }
 
