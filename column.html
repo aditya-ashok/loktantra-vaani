@@ -1457,6 +1457,7 @@ function reflowPages() {
           </div>
         </div>
         <div class="col-sidebar">
+          ${heroImg ? `<div class="col-hero"><img src="${heroImg}" alt="illustration"/></div>` : ''}
           <div class="col-sidebar-text">
             ${pgSide.map(p => `<p data-pi="${p.idx}">${p.text}</p>`).join('')}
           </div>
