@@ -1109,11 +1109,46 @@ INFOGRAPHIC: Include 3-4 real, factual data points relevant to the article topic
 
   const jsonMatch = txt.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
-    try { return JSON.parse(jsonMatch[0]); } catch(e) { console.warn('JSON parse attempt 1 failed:', e); }
+    try { return JSON.parse(jsonMatch[0]); } catch(e) {
+      console.warn('JSON parse attempt 1 failed:', e);
+      // Try to repair common JSON issues
+      try {
+        let fixed = jsonMatch[0];
+        // Fix unescaped quotes inside strings by finding paragraphs array and escaping inner quotes
+        fixed = fixed.replace(/:\s*"((?:[^"\\]|\\.)*)"/g, (m, content) => {
+          // Re-escape any unescaped quotes that aren't at boundaries
+          return m;
+        });
+        // Fix trailing commas before ] or }
+        fixed = fixed.replace(/,\s*([}\]])/g, '$1');
+        // Fix missing commas between array elements "..." "..."
+        fixed = fixed.replace(/"\s*\n\s*"/g, '",\n"');
+        return JSON.parse(fixed);
+      } catch(e2) { console.warn('JSON repair failed:', e2); }
+    }
   }
   const cleaned = txt.replace(/```json|```/g,'').trim();
   if (!cleaned) throw new Error('No valid JSON in AI response — please try again');
-  return JSON.parse(cleaned);
+  try { return JSON.parse(cleaned); } catch(e) {
+    // Last resort: try to extract fields manually
+    console.warn('All JSON parse failed, trying field extraction');
+    const hl = cleaned.match(/"headline"\s*:\s*"([^"]+)"/)?.[1] || 'Untitled';
+    const sub = cleaned.match(/"subheadline"\s*:\s*"([^"]+)"/)?.[1] || '';
+    const pq = cleaned.match(/"pullQuote"\s*:\s*"([^"]+)"/)?.[1] || '';
+    const ip = cleaned.match(/"imagePrompt"\s*:\s*"([^"]+)"/)?.[1] || hl;
+    const cap = cleaned.match(/"caption"\s*:\s*"([^"]+)"/)?.[1] || '';
+    // Extract paragraphs array
+    const paraMatch = cleaned.match(/"paragraphs"\s*:\s*\[([\s\S]*?)\]/);
+    let paras = [];
+    if (paraMatch) {
+      const raw = paraMatch[1];
+      // Split by "..." pattern
+      const matches = raw.match(/"((?:[^"\\]|\\.)*)"/g);
+      if (matches) paras = matches.map(m => m.slice(1,-1).replace(/\\"/g,'"'));
+    }
+    if (!paras.length) throw new Error('Could not parse AI response — please try again');
+    return { headline: hl, subheadline: sub, paragraphs: paras, pullQuote: pq, imagePrompt: ip, caption: cap };
+  }
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
