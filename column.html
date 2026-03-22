@@ -341,14 +341,21 @@ textarea.cinput { resize:vertical; min-height:60px; }
     <input class="cinput" type="url" id="sourceUrl" placeholder="Paste article URL or X/Twitter post link" style="margin-bottom:6px" oninput="detectXLink(this.value)" />
     <div id="xDetected" style="display:none;color:#1d9bf0;font-size:10px;margin:-2px 0 4px;font-weight:700">𝕏 Post detected — author will be extracted automatically</div>
     <div id="xVideoHint" style="display:none;color:#f59e0b;font-size:10px;margin:-2px 0 4px;font-weight:700">⚠ If this post has a VIDEO, describe what it's about below ↓</div>
-    <textarea class="cinput" id="sourceTopic" placeholder="Or type topic / headline / talking points...&#10;e.g., India's foreign policy shift in 2026"></textarea>
+    <textarea class="cinput" id="sourceTopic" placeholder="Or type topic / headline / talking points...&#10;e.g., India's foreign policy shift in 2026" style="min-height:100px"></textarea>
+  </div>
+
+  <!-- Data & Facts for Infographic -->
+  <div class="sec">
+    <div class="slabel">Data & Facts (for Infographic)</div>
+    <textarea class="cinput" id="userFacts" placeholder="Add real data points, stats, numbers...&#10;e.g., GDP growth: 7.2%&#10;Population: 1.44 billion&#10;Unemployment: 6.1%" style="min-height:80px"></textarea>
+    <div style="color:#8b7d6b;font-size:8px;margin-top:3px">These will appear as key facts in the sidebar infographic</div>
   </div>
 
   <!-- Trending News -->
   <div class="sec">
     <div class="slabel" style="display:flex;justify-content:space-between;align-items:center">
       <span>Trending Today</span>
-      <button onclick="fetchTrending()" id="trendBtn" style="background:transparent;border:1px solid #1e293b;color:#64748b;font-size:8px;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-weight:700">Fetch News</button>
+      <button onclick="fetchTrending()" id="trendBtn" style="background:#fff;border:1px solid #d4c9b4;color:#6b5640;font-size:8px;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-weight:700">Fetch News</button>
     </div>
     <div id="trendList" style="max-height:160px;overflow-y:auto;margin-top:4px">
       <div style="color:#334155;font-size:10px;font-style:italic">Click "Fetch News" to load today's trending topics</div>
@@ -879,6 +886,7 @@ async function generateColumn() {
   authorAbout = document.getElementById('authorAbout').value.trim();
   const sourceUrl = document.getElementById('sourceUrl').value.trim();
   const sourceTopic = document.getElementById('sourceTopic').value.trim();
+  const userFacts = document.getElementById('userFacts').value.trim();
 
   const isXUrl = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test((sourceUrl||'').trim());
   if (!authorName && !isXUrl) { alert('Please enter an author name.'); return; }
@@ -892,7 +900,7 @@ async function generateColumn() {
 
   try {
     // Step 1: Generate column text
-    columnData = await getColumnContent(sourceUrl, sourceTopic);
+    columnData = await getColumnContent(sourceUrl, sourceTopic, userFacts);
     // If X post detected and AI returned author info, use it
     const isXPost = /^https?:\/\/(x\.com|twitter\.com)\/\w+\/status\/\d+/.test((sourceUrl||'').trim());
     if (isXPost && columnData.xAuthorName) {
@@ -965,7 +973,7 @@ About: ${authorAbout || 'N/A'}`;
   }
 }
 
-async function getColumnContent(sourceUrl, sourceTopic) {
+async function getColumnContent(sourceUrl, sourceTopic, userFacts) {
   const langInst = {
     hi: 'Write the ENTIRE column in Hindi (Devanagari script). Headline, subheadline, all paragraphs, pull quote — everything in Hindi.',
     en: 'Write the ENTIRE column in English.',
@@ -1118,7 +1126,7 @@ ${lengthConfig.paraGuide}
   "xAuthorDesig": "their official designation or title (REQUIRED)"` : ''}
 }
 
-INFOGRAPHIC: Include 3-4 real, factual data points relevant to the article topic. Use REAL statistics (population, budget, percentages, rankings, dates). Each item needs a short label, a value (number/percentage/year), and a relevant emoji icon.`;
+INFOGRAPHIC: Include 3-4 real, factual data points relevant to the article topic. Each item needs a short label, a value (number/percentage/year), and a relevant emoji icon.${userFacts ? `\n\nUSER-PROVIDED DATA & FACTS (USE THESE for the infographic instead of making up data):\n${userFacts}` : ' Use REAL statistics (population, budget, percentages, rankings, dates).'}`;
 
   let txt = '';
   if (prov === 'gemini') {
@@ -1349,6 +1357,7 @@ function renderColumn() {
         <button class="eb-btn" id="editToggle" onclick="toggleEdit()">✏️ Edit Text</button>
         <button class="eb-btn" id="authorEditToggle" onclick="toggleAuthorEdit()">👤 Edit Author</button>
         <button class="eb-btn img-btn" id="imgToggle" onclick="toggleImgPanel()">🖼️ Add Image</button>
+        <button class="eb-btn" onclick="regenImageOnly()" style="border-color:#16a34a;color:#16a34a">🔄 Regen Image</button>
       </div>
       <div class="author-edit-panel" id="authorEditPanel">
         <div class="irow" style="margin-bottom:6px;">
@@ -1776,6 +1785,21 @@ function toggleImgPanel() {
   const show = !panel.classList.contains('show');
   panel.classList.toggle('show', show);
   btn.classList.toggle('active', show);
+}
+
+async function regenImageOnly() {
+  if (!columnData) { alert('Generate an article first.'); return; }
+  const heroEl = document.querySelector('#colNp .col-hero');
+  if (heroEl) heroEl.innerHTML = '<div class="lwrap"><div class="spin"></div></div>';
+  try {
+    const prompt = columnData.imagePrompt || columnData.headline;
+    heroImg = prov === 'openai' ? await oaiImg(prompt) : await gemImg(prompt);
+    if (heroEl && heroImg) heroEl.innerHTML = `<img src="${heroImg}" alt="illustration" style="width:100%;display:block"/>`;
+  } catch(e) {
+    console.warn('Image regen failed:', e);
+    alert('Image generation failed. Try again.');
+    if (heroEl) heroEl.innerHTML = '<div style="padding:8px;color:#8b7d6b;font-size:9px;text-align:center">Image generation failed</div>';
+  }
 }
 
 function insertImageToArticle(src, caption) {
