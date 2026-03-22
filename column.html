@@ -178,6 +178,8 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .dlbtn.sec-btn:hover { border-color:var(--gold); color:var(--gold); }
 .dlbtn.wa { background:#25D366; color:#fff; }
 .dlbtn.wa:hover { background:#1ebe5a; }
+.dlbtn.xbtn { background:#000; color:#fff; }
+.dlbtn.xbtn:hover { background:#1a1a1a; }
 
 /* Edit toolbar */
 .edit-bar { width:100%; max-width:960px; background:#f8f6f1; border:1.5px solid #d4c9b4; border-radius:8px; padding:10px 12px; margin-top:6px; }
@@ -1349,6 +1351,7 @@ function renderColumn() {
     <div class="dlrow">
       <button class="dlbtn" onclick="dlPNG()">⬇ Download PNG</button>
       <button class="dlbtn wa" onclick="shareWhatsApp()">📲 WhatsApp</button>
+      <button class="dlbtn xbtn" onclick="shareOnX()">𝕏 Share</button>
       <button class="dlbtn sec-btn" onclick="generateColumn()">↺ Regenerate</button>
     </div>
     <div class="edit-bar">
@@ -1674,6 +1677,12 @@ async function shareWhatsApp() {
   }
   const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
+}
+
+function shareOnX() {
+  if (!columnData) return;
+  const text = encodeURIComponent(`${columnData.headline}\n\n✍ ${columnData.authorName}\n\nLoktantra Vaani | Kautilya World\nloktantra-vaani.vercel.app`);
+  window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
 }
 
 // ── EDIT TEXT ────────────────────────────────────────────────────────────────
