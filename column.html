@@ -140,8 +140,8 @@ textarea.cinput { resize:vertical; min-height:60px; }
 .col-infographic .info-items { display:flex; flex-direction:column; gap:4px; }
 .col-infographic .info-item { display:flex; align-items:center; gap:5px; }
 .col-infographic .info-icon { font-size:11px; width:18px; text-align:center; flex-shrink:0; }
-.col-infographic .info-val { font-family:'Playfair Display',serif; font-size:11px; font-weight:900; color:var(--dark); line-height:1; flex-shrink:0; }
-.col-infographic .info-label { font-family:'Source Sans 3','Noto Sans Devanagari',sans-serif; font-size:7.5px; color:var(--brown); line-height:1.25; }
+.col-infographic .info-val { font-family:'Playfair Display','Noto Sans Devanagari',serif; font-size:10px; font-weight:900; color:var(--dark); line-height:1.1; }
+.col-infographic .info-label { font-family:'Source Sans 3','Noto Sans Devanagari',sans-serif; font-size:7px; color:var(--brown); line-height:1.25; flex:1; }
 
 /* Ad box */
 .col-ad { border:1.5px solid var(--lb); margin:4px 0; padding:6px 8px; background:rgba(245,158,11,.03); text-align:center; }
@@ -347,8 +347,8 @@ textarea.cinput { resize:vertical; min-height:60px; }
   <!-- Data & Facts for Infographic -->
   <div class="sec">
     <div class="slabel">Data & Facts (for Infographic)</div>
-    <textarea class="cinput" id="userFacts" placeholder="Add real data points, stats, numbers...&#10;e.g., GDP growth: 7.2%&#10;Population: 1.44 billion&#10;Unemployment: 6.1%" style="min-height:80px"></textarea>
-    <div style="color:#8b7d6b;font-size:8px;margin-top:3px">These will appear as key facts in the sidebar infographic</div>
+    <textarea class="cinput" id="userFacts" placeholder="Add data, themes, or key messages...&#10;e.g., Ancient Wisdom: Nalanda, Vikramshila&#10;GDP Growth: 10.6%&#10;Leverage Potential: IT, Agriculture&#10;Youth Power: 54% under 25" style="min-height:80px"></textarea>
+    <div style="color:#8b7d6b;font-size:8px;margin-top:3px">Stats, themes, or key messages for the sidebar infographic</div>
   </div>
 
   <!-- Trending News -->
@@ -1126,7 +1126,7 @@ ${lengthConfig.paraGuide}
   "xAuthorDesig": "their official designation or title (REQUIRED)"` : ''}
 }
 
-INFOGRAPHIC: Include 3-4 real, factual data points relevant to the article topic. Each item needs a short label, a value (number/percentage/year), and a relevant emoji icon.${userFacts ? `\n\nUSER-PROVIDED DATA & FACTS (USE THESE for the infographic instead of making up data):\n${userFacts}` : ' Use REAL statistics (population, budget, percentages, rankings, dates).'}`;
+INFOGRAPHIC: Include 3-4 items for the sidebar infographic. These can be DATA POINTS (stats, numbers, percentages) OR THEMATIC POINTS (key messages, themes, highlights). Each item needs: a short label (3-6 words), a value (number OR short phrase 2-4 words), and a relevant emoji icon.${userFacts ? `\n\nUSER-PROVIDED DATA & THEMES (USE THESE EXACTLY for the infographic — format each as label/value/icon):\n${userFacts}` : ' Use REAL statistics or key thematic points relevant to the topic.'}`;
 
   let txt = '';
   if (prov === 'gemini') {
